@@ -1,4 +1,4 @@
-# Almoxarifado em Agenda
+# Reserva HUB
 
 Controle de retirada e devolução de materiais: cadastro dos itens, agendamento por período, responsável, cliente e marcação automática de atrasos. Feito com React, TypeScript e Vite, sem back-end — os dados ficam no navegador de quem usa.
 
