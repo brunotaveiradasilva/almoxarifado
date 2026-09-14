@@ -9,13 +9,17 @@ interface Props {
   aoSalvar: (material: Omit<Material, 'id'>, id?: string | null) => void
 }
 
-const VAZIO = { nome: '', codigo: '', estoque: '1', obs: '' }
+const VAZIO = { nome: '', estoque: '1', obs: '' }
 
-/** Montado só enquanto o diálogo está aberto, então o formulário já nasce preenchido. */
+/**
+ * Montado só enquanto o diálogo está aberto, então o formulário já nasce preenchido.
+ * O código do material (patrimônio) não é digitado aqui: a API gera um sequencial
+ * sozinha ao cadastrar, e mantém o que já existe quando o material é editado.
+ */
 export function FormularioMaterial({ material, aoFechar, aoSalvar }: Props) {
   const [form, setForm] = useState(() =>
     material
-      ? { nome: material.nome, codigo: material.codigo, estoque: String(material.estoque), obs: material.obs }
+      ? { nome: material.nome, estoque: String(material.estoque), obs: material.obs }
       : VAZIO,
   )
   const [erro, setErro] = useState('')
@@ -27,7 +31,8 @@ export function FormularioMaterial({ material, aoFechar, aoSalvar }: Props) {
     if (!nome) return setErro('Informe o nome do material.')
     if (!(estoque >= 1)) return setErro('O estoque precisa ser pelo menos 1.')
 
-    aoSalvar({ nome, codigo: form.codigo.trim(), estoque, obs: form.obs.trim() }, material?.id)
+    // codigo vazio: a API gera um novo no cadastro, ou mantém o atual na edição.
+    aoSalvar({ nome, codigo: '', estoque, obs: form.obs.trim() }, material?.id)
     aoFechar()
   }
 
@@ -50,28 +55,16 @@ export function FormularioMaterial({ material, aoFechar, aoSalvar }: Props) {
         />
       </div>
 
-      <div className="grid-2">
-        <div className="field">
-          <label htmlFor="m-codigo">Código / patrimônio</label>
-          <input
-            id="m-codigo"
-            maxLength={30}
-            placeholder="Opcional"
-            value={form.codigo}
-            onChange={(e) => setForm({ ...form, codigo: e.target.value })}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="m-estoque">Quantidade em estoque</label>
-          <input
-            id="m-estoque"
-            type="number"
-            min={1}
-            step={1}
-            value={form.estoque}
-            onChange={(e) => setForm({ ...form, estoque: e.target.value })}
-          />
-        </div>
+      <div className="field">
+        <label htmlFor="m-estoque">Quantidade em estoque</label>
+        <input
+          id="m-estoque"
+          type="number"
+          min={1}
+          step={1}
+          value={form.estoque}
+          onChange={(e) => setForm({ ...form, estoque: e.target.value })}
+        />
       </div>
 
       <div className="field">

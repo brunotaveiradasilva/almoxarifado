@@ -42,14 +42,25 @@ export function useAlmoxarifado() {
     setErro(null)
 
     if (id) {
+      const anterior = dados.materiais
+      // Otimista com o que foi digitado, mas o código é gerado/mantido pelo servidor:
+      // só a resposta da API tem o valor de verdade, então ela substitui a linha ao chegar.
       setDados((atual) => ({
         ...atual,
         materiais: atual.materiais.map((m) => (m.id === id ? { ...m, ...material } : m)),
       }))
-      api.atualizarMaterial(id, material).catch((e) => {
-        setErro(mensagemErro(e))
-        carregarTudo()
-      })
+      api
+        .atualizarMaterial(id, material)
+        .then((atualizado) => {
+          setDados((atual) => ({
+            ...atual,
+            materiais: atual.materiais.map((m) => (m.id === id ? atualizado : m)),
+          }))
+        })
+        .catch((e) => {
+          setErro(mensagemErro(e))
+          setDados((atual) => ({ ...atual, materiais: anterior }))
+        })
       return
     }
 
@@ -67,7 +78,7 @@ export function useAlmoxarifado() {
         setErro(mensagemErro(e))
         setDados((atual) => ({ ...atual, materiais: atual.materiais.filter((m) => m.id !== provisorio) }))
       })
-  }, [carregarTudo])
+  }, [dados.materiais])
 
   const removerMaterial = useCallback((id: string) => {
     setErro(null)
