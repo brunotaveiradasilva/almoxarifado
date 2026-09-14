@@ -123,6 +123,15 @@
   main { max-width: 1120px; margin: 0 auto; padding: 44px 22px 96px; }
   .view[hidden] { display: none; }
 
+  .banner-erro {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin-bottom: 24px; padding: 14px 18px; border-radius: var(--radius);
+    background: color-mix(in srgb, var(--st-atrasado) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--st-atrasado) 35%, transparent);
+    color: var(--st-atrasado); font-size: 15px;
+  }
+  .banner-erro .btn { flex-shrink: 0; }
+
   .view-head {
     display: flex; align-items: flex-end; justify-content: space-between;
     gap: 20px; flex-wrap: wrap; margin-bottom: 30px;

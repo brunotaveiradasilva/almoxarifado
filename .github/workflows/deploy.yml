@@ -30,11 +30,14 @@ jobs:
       - run: npm ci
 
       # O Pages serve o site em /<nome-do-repositorio>/, então o build
-      # precisa gerar os caminhos com esse prefixo.
+      # precisa gerar os caminhos com esse prefixo. VITE_API_URL vem de um secret
+      # do repositório (Settings > Secrets and variables > Actions) com a URL
+      # pública da almoxarifado-api depois do deploy dela (ex: Railway).
       - name: Build
         run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - uses: actions/configure-pages@v5
 

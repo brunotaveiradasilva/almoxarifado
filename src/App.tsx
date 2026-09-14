@@ -36,6 +36,8 @@ export default function App() {
     material: null,
   })
 
+  const primeiraCarga = app.carregando && !app.materiais.length && !app.agendamentos.length
+
   const resumo = useMemo(() => calcularResumo(app.agendamentos), [app.agendamentos])
 
   const agendamentosVisiveis = useMemo(
@@ -87,7 +89,18 @@ export default function App() {
       </header>
 
       <main>
-        {aba === 'agenda' ? (
+        {app.erro ? (
+          <div className="banner-erro" role="alert">
+            <span>{app.erro}</span>
+            <button className="btn" onClick={app.tentarNovamente}>
+              Tentar de novo
+            </button>
+          </div>
+        ) : null}
+
+        {primeiraCarga ? (
+          <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
+        ) : aba === 'agenda' ? (
           <section className="view" role="tabpanel">
             <div className="view-head">
               <div>
@@ -239,7 +252,7 @@ export default function App() {
 
       <footer className="foot">
         {app.materiais.length} material(is) cadastrado(s) · {app.agendamentos.length} agendamento(s). Os dados
-        ficam salvos neste navegador, neste computador.
+        ficam no servidor — acessíveis de qualquer computador.
       </footer>
 
       {dialogoAgendamento.aberto ? (
