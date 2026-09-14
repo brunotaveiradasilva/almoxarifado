@@ -1,0 +1,64 @@
+import type { Agendamento, Material, Status } from '../types'
+
+// Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
+// em produção vem do VITE_API_URL configurado no build do GitHub Pages.
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080').replace(/\/$/, '')
+
+/** Erro de rede ou resposta não-2xx da API, com a mensagem já pronta pra mostrar ao usuário. */
+export class ErroApi extends Error {}
+
+async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> {
+  let resposta: Response
+  try {
+    resposta = await fetch(`${BASE_URL}${caminho}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...opcoes,
+    })
+  } catch {
+    throw new ErroApi('Não foi possível falar com o servidor. Verifique sua conexão e tente de novo.')
+  }
+
+  if (!resposta.ok) {
+    const corpo = await resposta.json().catch(() => null)
+    throw new ErroApi(corpo?.erro || `O servidor respondeu com erro (${resposta.status}).`)
+  }
+
+  if (resposta.status === 204) return undefined as T
+  return (await resposta.json()) as T
+}
+
+export function listarMateriais(): Promise<Material[]> {
+  return requisitar('/api/materiais')
+}
+
+export function criarMaterial(material: Omit<Material, 'id'>): Promise<Material> {
+  return requisitar('/api/materiais', { method: 'POST', body: JSON.stringify(material) })
+}
+
+export function atualizarMaterial(id: string, material: Omit<Material, 'id'>): Promise<Material> {
+  return requisitar(`/api/materiais/${id}`, { method: 'PUT', body: JSON.stringify(material) })
+}
+
+export function excluirMaterial(id: string): Promise<void> {
+  return requisitar(`/api/materiais/${id}`, { method: 'DELETE' })
+}
+
+export function listarAgendamentos(): Promise<Agendamento[]> {
+  return requisitar('/api/agendamentos')
+}
+
+export function criarAgendamento(agendamento: Omit<Agendamento, 'id'>): Promise<Agendamento> {
+  return requisitar('/api/agendamentos', { method: 'POST', body: JSON.stringify(agendamento) })
+}
+
+export function atualizarAgendamento(id: string, agendamento: Omit<Agendamento, 'id'>): Promise<Agendamento> {
+  return requisitar(`/api/agendamentos/${id}`, { method: 'PUT', body: JSON.stringify(agendamento) })
+}
+
+export function definirStatusAgendamento(id: string, status: Status): Promise<Agendamento> {
+  return requisitar(`/api/agendamentos/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
+}
+
+export function excluirAgendamento(id: string): Promise<void> {
+  return requisitar(`/api/agendamentos/${id}`, { method: 'DELETE' })
+}

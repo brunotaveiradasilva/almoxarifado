@@ -1,6 +1,6 @@
-# Reserva HUB
+# Almoxarifado em Agenda
 
-Controle de retirada e devolução de materiais: cadastro dos itens, agendamento por período, responsável, cliente e marcação automática de atrasos. Feito com React, TypeScript e Vite, sem back-end — os dados ficam no navegador de quem usa.
+Controle de retirada e devolução de materiais: cadastro dos itens, agendamento por período, responsável, cliente e marcação automática de atrasos. Front-end em React, TypeScript e Vite; os dados ficam num banco de verdade, servidos pela [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api) (Java), para acessar de qualquer computador.
 
 ![Tela de agendamentos](docs/agendamentos.png)
 
@@ -21,7 +21,7 @@ Quem empresta equipamento — almoxarifado, escola, locadora, equipe de campo �
 - Sugestão automática de clientes já cadastrados
 - Barra de ocupação por material (quanto está fora do estoque)
 - Tema claro e escuro, seguindo a preferência do sistema
-- Dados salvos no `localStorage`, sem necessidade de servidor ou login
+- Dados centralizados na [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api): o mesmo cadastro aparece em qualquer computador
 
 ![Cadastro de materiais](docs/materiais.png)
 
@@ -32,17 +32,18 @@ Quem empresta equipamento — almoxarifado, escola, locadora, equipe de campo �
 | Interface | React 19 + TypeScript |
 | Build | Vite |
 | Estilo | CSS puro com variáveis (temas claro/escuro) |
-| Persistência | `localStorage` do navegador |
+| Persistência | API própria ([almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api), Java + MySQL) |
 | Deploy | GitHub Actions → GitHub Pages |
 
 ## Como rodar
 
-Requer Node.js 20 ou superior.
+Requer Node.js 20 ou superior, e a [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api) rodando (`docker compose up` nela é o caminho mais rápido).
 
 ```bash
-git clone https://github.com/<seu-usuario>/agendamento-materiais.git
-cd agendamento-materiais
+git clone https://github.com/brunotaveiradasilva/almoxarifado.git
+cd almoxarifado
 npm install
+cp .env.example .env   # VITE_API_URL — por padrão já aponta pro localhost:8080
 npm run dev
 ```
 
@@ -66,7 +67,8 @@ src/
 ├── lib/
 │   ├── datas.ts             # datas em ISO, formatação e diferença em dias
 │   ├── regras.ts            # regras de negócio (atraso, disponibilidade, filtros)
-│   └── armazenamento.ts     # leitura e gravação no localStorage
+│   ├── api.ts               # cliente HTTP da almoxarifado-api
+│   └── idTemporario.ts      # id provisório pra UI otimista, até a API confirmar
 ├── hooks/
 │   └── useAlmoxarifado.ts   # estado da aplicação e ações que o alteram
 ├── data/
@@ -80,22 +82,23 @@ As regras de negócio ficam em `src/lib/regras.ts`, separadas da interface: são
 
 - **Datas como texto ISO (`AAAA-MM-DD`).** Comparar `"2026-09-08" < "2026-09-10"` é comparação de texto e não sofre com fuso horário — problema clássico ao usar `Date` para representar um dia do calendário.
 - **Status derivado.** *Atrasado* não é gravado; é calculado a partir da data de devolução e do status atual. Não existe estado inconsistente para corrigir.
-- **Estado em um hook só.** `useAlmoxarifado` concentra os dados e as ações, e grava no navegador a cada alteração. Sem biblioteca de estado global para um app deste tamanho.
-- **Leitura tolerante a falhas.** Aba anônima, armazenamento bloqueado ou JSON corrompido devolvem dados vazios em vez de quebrar a tela.
+- **Estado em um hook só.** `useAlmoxarifado` concentra os dados e as ações, busca tudo da API ao montar, e mantém a UI otimista: cada ação atualiza a tela na hora e confirma com a API em seguida — se a API recusar, a mudança é desfeita e o erro some no rodapé.
+- **`materialId` sem chave estrangeira.** Um agendamento guarda o id do material como texto solto, não uma relação de verdade — de propósito, porque excluir um material não pode apagar o histórico de quem já retirou aquele item.
 
 ## Deploy
 
 O workflow em `.github/workflows/deploy.yml` publica no GitHub Pages a cada push na `main`. Para ativar:
 
 1. No repositório, vá em **Settings → Pages** e, em *Source*, escolha **GitHub Actions**.
-2. Dê push na `main`. O site fica em `https://<seu-usuario>.github.io/<nome-do-repositorio>/`.
+2. Em **Settings → Secrets and variables → Actions**, crie o secret `VITE_API_URL` com a URL pública da almoxarifado-api já publicada (ex: `https://almoxarifado-api.up.railway.app`).
+3. Dê push na `main`. O site fica em `https://<seu-usuário>.github.io/<nome-do-repositório>/`.
 
 O caminho base do build é ajustado automaticamente pelo workflow, através da variável `BASE_PATH`.
 
 ## Limitações conhecidas
 
-- Os dados são de um navegador só: não há sincronização entre pessoas ou dispositivos. Um back-end com API e banco resolveria, e as regras em `src/lib/regras.ts` seriam reaproveitadas.
-- Não há autenticação nem histórico de alterações.
+- A API (veja [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api)) ainda não tem autenticação: qualquer um com a URL pode ler e alterar os dados.
+- Não há histórico de alterações — só o estado atual de cada material e agendamento.
 
 ## Licença
 
