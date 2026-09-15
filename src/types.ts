@@ -56,6 +56,15 @@ export interface Meta {
   unidade: UnidadeMeta
 }
 
+/** O valor de uma meta atribuído a um vendedor específico: quanto ele precisa bater e quanto já bateu. */
+export interface MetaVendedor {
+  id: string
+  vendedor: Vendedor
+  meta: Meta
+  valorMeta: number
+  valorRealizado: number
+}
+
 export interface Dados {
   materiais: Material[]
   agendamentos: Agendamento[]

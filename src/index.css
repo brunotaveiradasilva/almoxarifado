@@ -335,6 +335,16 @@
   .consulta-subtitulo { font-size: 17px; font-weight: 600; letter-spacing: -.015em; margin: 28px 0 12px; }
   .consulta-subtitulo:first-of-type { margin-top: 0; }
 
+  .input-tabela {
+    width: 90px; text-align: right; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 9px; font-size: 14px; font-variant-numeric: tabular-nums;
+  }
+  .input-tabela:focus {
+    outline: 0; border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .hint.warn { color: var(--st-atrasado); }
+
   .icon-btn {
     background: none; border: 0; cursor: pointer; color: var(--ink-3);
     font-size: 22px; line-height: 1; padding: 4px 8px; border-radius: 50%;
