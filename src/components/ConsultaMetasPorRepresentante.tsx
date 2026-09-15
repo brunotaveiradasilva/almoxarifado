@@ -1,35 +1,35 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { Meta, MetaVendedor, Vendedor } from '../types'
+import type { Meta, MetaRepresentante, Representante } from '../types'
 
 interface Props {
-  vendedores: Vendedor[]
+  representantes: Representante[]
   metas: Meta[]
-  metasVendedor: MetaVendedor[]
+  metasRepresentante: MetaRepresentante[]
 }
 
-/** Só visualização: metas de todos os fornecedores para quem o vendedor escolhido trabalha. Editar é na tela "Metas por fornecedor". */
-export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor }: Props) {
-  const [vendedorId, setVendedorId] = useState(vendedores[0]?.id ?? '')
-  const vendedor = vendedores.find((v) => v.id === vendedorId) ?? null
+/** Só visualização: metas de todos os fornecedores para quem o representante escolhido trabalha. Editar é na tela "Metas por fornecedor". */
+export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepresentante }: Props) {
+  const [representanteId, setRepresentanteId] = useState(representantes[0]?.id ?? '')
+  const representante = representantes.find((v) => v.id === representanteId) ?? null
 
-  const metasDoVendedor = useMemo(() => {
-    if (!vendedor) return []
-    const fornecedorIds = new Set(vendedor.fornecedores.map((f) => f.id))
+  const metasDoRepresentante = useMemo(() => {
+    if (!representante) return []
+    const fornecedorIds = new Set(representante.fornecedores.map((f) => f.id))
     return metas.filter((m) => fornecedorIds.has(m.fornecedor.id))
-  }, [vendedor, metas])
+  }, [representante, metas])
 
-  if (!vendedores.length) {
-    return <EstadoVazio titulo="Nenhum vendedor cadastrado" texto="Cadastre um vendedor pra consultar as metas dele." />
+  if (!representantes.length) {
+    return <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre um representante pra consultar as metas dele." />
   }
 
   return (
     <div>
       <div className="field consulta-filtro">
-        <label htmlFor="cv-vendedor">Vendedor</label>
-        <select id="cv-vendedor" value={vendedorId} onChange={(e) => setVendedorId(e.target.value)}>
-          {vendedores.map((v) => (
+        <label htmlFor="cv-representante">Representante</label>
+        <select id="cv-representante" value={representanteId} onChange={(e) => setRepresentanteId(e.target.value)}>
+          {representantes.map((v) => (
             <option key={v.id} value={v.id}>
               {v.nome}
             </option>
@@ -37,11 +37,11 @@ export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor }: P
         </select>
       </div>
 
-      {vendedor ? (
+      {representante ? (
         <p className="hint consulta-info">
-          Fornecedores: {vendedor.fornecedores.map((f) => f.nome).join(', ') || '—'}
-          {vendedor.email ? ` · ${vendedor.email}` : ''}
-          {vendedor.celular ? ` · ${vendedor.celular}` : ''}
+          Fornecedores: {representante.fornecedores.map((f) => f.nome).join(', ') || '—'}
+          {representante.email ? ` · ${representante.email}` : ''}
+          {representante.celular ? ` · ${representante.celular}` : ''}
         </p>
       ) : null}
 
@@ -58,9 +58,9 @@ export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor }: P
             </tr>
           </thead>
           <tbody>
-            {metasDoVendedor.map((meta) => {
+            {metasDoRepresentante.map((meta) => {
               const atribuicao =
-                metasVendedor.find((mv) => mv.vendedor.id === vendedorId && mv.meta.id === meta.id) ?? null
+                metasRepresentante.find((mv) => mv.representante.id === representanteId && mv.meta.id === meta.id) ?? null
               const valorMeta = atribuicao?.valorMeta ?? 0
               const valorRealizado = atribuicao?.valorRealizado ?? 0
               const falta = valorMeta - valorRealizado
@@ -82,10 +82,10 @@ export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor }: P
           </tbody>
         </table>
 
-        {!metasDoVendedor.length ? (
+        {!metasDoRepresentante.length ? (
           <EstadoVazio
-            titulo="Nenhuma meta pra esse vendedor"
-            texto="Nenhum dos fornecedores desse vendedor tem meta cadastrada ainda."
+            titulo="Nenhuma meta pra esse representante"
+            texto="Nenhum dos fornecedores desse representante tem meta cadastrada ainda."
           />
         ) : null}
       </div>

@@ -1,5 +1,5 @@
 import { sessaoSalva } from './auth'
-import type { Agendamento, Fornecedor, Material, Meta, MetaVendedor, Role, Status, UnidadeMeta, Vendedor } from '../types'
+import type { Agendamento, Fornecedor, Material, Meta, MetaRepresentante, Role, Status, UnidadeMeta, Representante } from '../types'
 
 // Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
 // em produção vem do VITE_API_URL configurado no build do GitHub Pages.
@@ -122,28 +122,28 @@ export function excluirFornecedor(id: string): Promise<void> {
   return requisitar(`/api/fornecedores/${id}`, { method: 'DELETE' })
 }
 
-/** Formato aceito pela API para criar/atualizar um vendedor: fornecedores só pelo id. */
-export interface VendedorEntrada {
+/** Formato aceito pela API para criar/atualizar um representante: fornecedores só pelo id. */
+export interface RepresentanteEntrada {
   nome: string
   fornecedorIds: string[]
   email: string
   celular: string
 }
 
-export function listarVendedores(): Promise<Vendedor[]> {
-  return requisitar('/api/vendedores')
+export function listarRepresentantes(): Promise<Representante[]> {
+  return requisitar('/api/representantes')
 }
 
-export function criarVendedor(vendedor: VendedorEntrada): Promise<Vendedor> {
-  return requisitar('/api/vendedores', { method: 'POST', body: JSON.stringify(vendedor) })
+export function criarRepresentante(representante: RepresentanteEntrada): Promise<Representante> {
+  return requisitar('/api/representantes', { method: 'POST', body: JSON.stringify(representante) })
 }
 
-export function atualizarVendedor(id: string, vendedor: VendedorEntrada): Promise<Vendedor> {
-  return requisitar(`/api/vendedores/${id}`, { method: 'PUT', body: JSON.stringify(vendedor) })
+export function atualizarRepresentante(id: string, representante: RepresentanteEntrada): Promise<Representante> {
+  return requisitar(`/api/representantes/${id}`, { method: 'PUT', body: JSON.stringify(representante) })
 }
 
-export function excluirVendedor(id: string): Promise<void> {
-  return requisitar(`/api/vendedores/${id}`, { method: 'DELETE' })
+export function excluirRepresentante(id: string): Promise<void> {
+  return requisitar(`/api/representantes/${id}`, { method: 'DELETE' })
 }
 
 /** Formato aceito pela API para criar/atualizar uma meta: fornecedor só pelo id. */
@@ -169,26 +169,26 @@ export function excluirMeta(id: string): Promise<void> {
   return requisitar(`/api/metas/${id}`, { method: 'DELETE' })
 }
 
-/** Formato aceito pela API para criar/atualizar um valor de meta de vendedor. */
-export interface MetaVendedorEntrada {
-  vendedorId: string
+/** Formato aceito pela API para criar/atualizar um valor de meta de representante. */
+export interface MetaRepresentanteEntrada {
+  representanteId: string
   metaId: string
   valorMeta: number
   valorRealizado: number
 }
 
-export function listarMetasVendedor(): Promise<MetaVendedor[]> {
-  return requisitar('/api/metas-vendedor')
+export function listarMetasRepresentante(): Promise<MetaRepresentante[]> {
+  return requisitar('/api/metas-representante')
 }
 
-export function criarMetaVendedor(mv: MetaVendedorEntrada): Promise<MetaVendedor> {
-  return requisitar('/api/metas-vendedor', { method: 'POST', body: JSON.stringify(mv) })
+export function criarMetaRepresentante(mv: MetaRepresentanteEntrada): Promise<MetaRepresentante> {
+  return requisitar('/api/metas-representante', { method: 'POST', body: JSON.stringify(mv) })
 }
 
-export function atualizarMetaVendedor(id: string, mv: MetaVendedorEntrada): Promise<MetaVendedor> {
-  return requisitar(`/api/metas-vendedor/${id}`, { method: 'PUT', body: JSON.stringify(mv) })
+export function atualizarMetaRepresentante(id: string, mv: MetaRepresentanteEntrada): Promise<MetaRepresentante> {
+  return requisitar(`/api/metas-representante/${id}`, { method: 'PUT', body: JSON.stringify(mv) })
 }
 
-export function excluirMetaVendedor(id: string): Promise<void> {
-  return requisitar(`/api/metas-vendedor/${id}`, { method: 'DELETE' })
+export function excluirMetaRepresentante(id: string): Promise<void> {
+  return requisitar(`/api/metas-representante/${id}`, { method: 'DELETE' })
 }

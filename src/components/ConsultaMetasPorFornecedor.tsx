@@ -1,20 +1,20 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
-import { LinhaMetaVendedor } from './LinhaMetaVendedor'
+import { LinhaMetaRepresentante } from './LinhaMetaRepresentante'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { MetaVendedorEntrada } from '../lib/api'
-import type { Fornecedor, Meta, MetaVendedor, Vendedor } from '../types'
+import type { MetaRepresentanteEntrada } from '../lib/api'
+import type { Fornecedor, Meta, MetaRepresentante, Representante } from '../types'
 
 interface Props {
   fornecedores: Fornecedor[]
-  vendedores: Vendedor[]
+  representantes: Representante[]
   metas: Meta[]
-  metasVendedor: MetaVendedor[]
-  aoSalvar: (mv: MetaVendedorEntrada, id?: string | null) => Promise<MetaVendedor>
+  metasRepresentante: MetaRepresentante[]
+  aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
 }
 
-/** Metas e vendedores de um fornecedor escolhido — o valor de meta de cada vendedor dá pra editar direto aqui. */
-export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas, metasVendedor, aoSalvar }: Props) {
+/** Metas e representantes de um fornecedor escolhido — o valor de meta de cada representante dá pra editar direto aqui. */
+export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas, metasRepresentante, aoSalvar }: Props) {
   const [fornecedorId, setFornecedorId] = useState(fornecedores[0]?.id ?? '')
 
   const metasDoFornecedor = useMemo(
@@ -22,9 +22,9 @@ export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas, me
     [metas, fornecedorId],
   )
 
-  const vendedoresDoFornecedor = useMemo(
-    () => vendedores.filter((v) => v.fornecedores.some((f) => f.id === fornecedorId)),
-    [vendedores, fornecedorId],
+  const representantesDoFornecedor = useMemo(
+    () => representantes.filter((v) => v.fornecedores.some((f) => f.id === fornecedorId)),
+    [representantes, fornecedorId],
   )
 
   if (!fornecedores.length) {
@@ -70,20 +70,20 @@ export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas, me
         ) : null}
       </div>
 
-      <h3 className="consulta-subtitulo">Vendedores</h3>
+      <h3 className="consulta-subtitulo">Representantes</h3>
 
-      {!vendedoresDoFornecedor.length ? (
+      {!representantesDoFornecedor.length ? (
         <div className="table-wrap">
           <EstadoVazio
-            titulo="Nenhum vendedor pra esse fornecedor"
-            texto="Nenhum vendedor trabalha pra esse fornecedor ainda."
+            titulo="Nenhum representante pra esse fornecedor"
+            texto="Nenhum representante trabalha pra esse fornecedor ainda."
           />
         </div>
       ) : !metasDoFornecedor.length ? (
-        <p className="hint">Cadastre uma meta pra esse fornecedor pra poder atribuir valores aos vendedores.</p>
+        <p className="hint">Cadastre uma meta pra esse fornecedor pra poder atribuir valores aos representantes.</p>
       ) : (
-        vendedoresDoFornecedor.map((v) => (
-          <div key={v.id} className="bloco-vendedor">
+        representantesDoFornecedor.map((v) => (
+          <div key={v.id} className="bloco-representante">
             <p className="consulta-info">
               <strong>{v.nome}</strong>
               {v.email ? ` · ${v.email}` : ''}
@@ -103,11 +103,11 @@ export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas, me
                 </thead>
                 <tbody>
                   {metasDoFornecedor.map((meta) => (
-                    <LinhaMetaVendedor
+                    <LinhaMetaRepresentante
                       key={`${v.id}:${meta.id}`}
-                      vendedorId={v.id}
+                      representanteId={v.id}
                       meta={meta}
-                      atribuicao={metasVendedor.find((mv) => mv.vendedor.id === v.id && mv.meta.id === meta.id) ?? null}
+                      atribuicao={metasRepresentante.find((mv) => mv.representante.id === v.id && mv.meta.id === meta.id) ?? null}
                       aoSalvar={aoSalvar}
                     />
                   ))}

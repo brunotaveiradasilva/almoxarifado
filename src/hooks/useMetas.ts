@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as api from '../lib/api'
 import { ErroApi } from '../lib/api'
-import type { MetaEntrada, MetaVendedorEntrada, VendedorEntrada } from '../lib/api'
+import type { MetaEntrada, MetaRepresentanteEntrada, RepresentanteEntrada } from '../lib/api'
 import { idTemporario } from '../lib/idTemporario'
-import type { Fornecedor, Meta, MetaVendedor, Vendedor } from '../types'
+import type { Fornecedor, Meta, MetaRepresentante, Representante } from '../types'
 
 function mensagemErro(erro: unknown): string {
   return erro instanceof ErroApi ? erro.message : 'Algo deu errado. Tente de novo.'
 }
 
 /**
- * Estado dos cadastros de apoio às metas — fornecedores, vendedores e metas —, só para quem é
+ * Estado dos cadastros de apoio às metas — fornecedores, representantes e metas —, só para quem é
  * admin. Mesmo padrão otimista do useAlmoxarifado: atualiza a tela na hora e confirma com a API
  * depois; se a API recusar, desfaz e mostra o erro.
  */
 export function useMetas() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
-  const [vendedores, setVendedores] = useState<Vendedor[]>([])
+  const [representantes, setRepresentantes] = useState<Representante[]>([])
   const [metas, setMetas] = useState<Meta[]>([])
-  const [metasVendedor, setMetasVendedor] = useState<MetaVendedor[]>([])
+  const [metasRepresentante, setMetasRepresentante] = useState<MetaRepresentante[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -26,17 +26,17 @@ export function useMetas() {
     setCarregando(true)
     setErro(null)
     try {
-      const [fornecedoresCarregados, vendedoresCarregados, metasCarregadas, metasVendedorCarregadas] =
+      const [fornecedoresCarregados, representantesCarregados, metasCarregadas, metasRepresentanteCarregadas] =
         await Promise.all([
           api.listarFornecedores(),
-          api.listarVendedores(),
+          api.listarRepresentantes(),
           api.listarMetas(),
-          api.listarMetasVendedor(),
+          api.listarMetasRepresentante(),
         ])
       setFornecedores(fornecedoresCarregados)
-      setVendedores(vendedoresCarregados)
+      setRepresentantes(representantesCarregados)
       setMetas(metasCarregadas)
-      setMetasVendedor(metasVendedorCarregadas)
+      setMetasRepresentante(metasRepresentanteCarregadas)
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
@@ -91,17 +91,17 @@ export function useMetas() {
     [fornecedores],
   )
 
-  const salvarVendedor = useCallback(
-    (vendedor: VendedorEntrada, id?: string | null) => {
+  const salvarRepresentante = useCallback(
+    (representante: RepresentanteEntrada, id?: string | null) => {
       setErro(null)
 
       if (id) {
         // Otimista só com o que dá pra saber na hora (nome, email, celular); os fornecedores
         // completos (nome incluso) só voltam certos na resposta da API.
-        setVendedores((atual) => atual.map((v) => (v.id === id ? { ...v, ...vendedor } : v)))
+        setRepresentantes((atual) => atual.map((v) => (v.id === id ? { ...v, ...representante } : v)))
         api
-          .atualizarVendedor(id, vendedor)
-          .then((atualizado) => setVendedores((atual) => atual.map((v) => (v.id === id ? atualizado : v))))
+          .atualizarRepresentante(id, representante)
+          .then((atualizado) => setRepresentantes((atual) => atual.map((v) => (v.id === id ? atualizado : v))))
           .catch((e) => {
             setErro(mensagemErro(e))
             carregarTudo()
@@ -110,24 +110,24 @@ export function useMetas() {
       }
 
       api
-        .criarVendedor(vendedor)
-        .then((criado) => setVendedores((atual) => [...atual, criado]))
+        .criarRepresentante(representante)
+        .then((criado) => setRepresentantes((atual) => [...atual, criado]))
         .catch((e) => setErro(mensagemErro(e)))
     },
     [carregarTudo],
   )
 
-  const removerVendedor = useCallback(
+  const removerRepresentante = useCallback(
     (id: string) => {
       setErro(null)
-      const anterior = vendedores
-      setVendedores((atual) => atual.filter((v) => v.id !== id))
-      api.excluirVendedor(id).catch((e) => {
+      const anterior = representantes
+      setRepresentantes((atual) => atual.filter((v) => v.id !== id))
+      api.excluirRepresentante(id).catch((e) => {
         setErro(mensagemErro(e))
-        setVendedores(anterior)
+        setRepresentantes(anterior)
       })
     },
-    [vendedores],
+    [representantes],
   )
 
   const salvarMeta = useCallback(
@@ -160,15 +160,15 @@ export function useMetas() {
     })
   }, [metas])
 
-  /** Cria (id null/undefined) ou atualiza (id preenchido) o valor de meta de um vendedor. */
-  const salvarMetaVendedor = useCallback(
-    (mv: MetaVendedorEntrada, id?: string | null): Promise<MetaVendedor> => {
+  /** Cria (id null/undefined) ou atualiza (id preenchido) o valor de meta de um representante. */
+  const salvarMetaRepresentante = useCallback(
+    (mv: MetaRepresentanteEntrada, id?: string | null): Promise<MetaRepresentante> => {
       setErro(null)
 
-      const promessa = id ? api.atualizarMetaVendedor(id, mv) : api.criarMetaVendedor(mv)
+      const promessa = id ? api.atualizarMetaRepresentante(id, mv) : api.criarMetaRepresentante(mv)
       return promessa
         .then((salva) => {
-          setMetasVendedor((atual) => {
+          setMetasRepresentante((atual) => {
             const existe = atual.some((m) => m.id === salva.id)
             return existe ? atual.map((m) => (m.id === salva.id ? salva : m)) : [...atual, salva]
           })
@@ -182,31 +182,31 @@ export function useMetas() {
     [],
   )
 
-  const removerMetaVendedor = useCallback((id: string) => {
+  const removerMetaRepresentante = useCallback((id: string) => {
     setErro(null)
-    const anterior = metasVendedor
-    setMetasVendedor((atual) => atual.filter((m) => m.id !== id))
-    api.excluirMetaVendedor(id).catch((e) => {
+    const anterior = metasRepresentante
+    setMetasRepresentante((atual) => atual.filter((m) => m.id !== id))
+    api.excluirMetaRepresentante(id).catch((e) => {
       setErro(mensagemErro(e))
-      setMetasVendedor(anterior)
+      setMetasRepresentante(anterior)
     })
-  }, [metasVendedor])
+  }, [metasRepresentante])
 
   return {
     fornecedores,
-    vendedores,
+    representantes,
     metas,
-    metasVendedor,
+    metasRepresentante,
     carregando,
     erro,
     tentarNovamente: carregarTudo,
     salvarFornecedor,
     removerFornecedor,
-    salvarVendedor,
-    removerVendedor,
+    salvarRepresentante,
+    removerRepresentante,
     salvarMeta,
     removerMeta,
-    salvarMetaVendedor,
-    removerMetaVendedor,
+    salvarMetaRepresentante,
+    removerMetaRepresentante,
   }
 }

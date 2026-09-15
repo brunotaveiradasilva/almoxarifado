@@ -3,25 +3,25 @@ import { useMetas } from '../hooks/useMetas'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaFornecedores } from './TabelaFornecedores'
 import { FormularioFornecedor } from './FormularioFornecedor'
-import { TabelaVendedores } from './TabelaVendedores'
-import { FormularioVendedor } from './FormularioVendedor'
+import { TabelaRepresentantes } from './TabelaRepresentantes'
+import { FormularioRepresentante } from './FormularioRepresentante'
 import { TabelaMetas } from './TabelaMetas'
 import { FormularioMeta } from './FormularioMeta'
-import { ConsultaMetasPorVendedor } from './ConsultaMetasPorVendedor'
+import { ConsultaMetasPorRepresentante } from './ConsultaMetasPorRepresentante'
 import { ConsultaMetasPorFornecedor } from './ConsultaMetasPorFornecedor'
-import type { Fornecedor, Meta, Vendedor } from '../types'
+import type { Fornecedor, Meta, Representante } from '../types'
 
-type Subaba = 'fornecedores' | 'vendedores' | 'metas' | 'porVendedor' | 'porFornecedor'
+type Subaba = 'fornecedores' | 'representantes' | 'metas' | 'porRepresentante' | 'porFornecedor'
 
 const SUBABAS: { valor: Subaba; rotulo: string }[] = [
   { valor: 'fornecedores', rotulo: 'Fornecedores' },
-  { valor: 'vendedores', rotulo: 'Vendedores' },
+  { valor: 'representantes', rotulo: 'Representantes' },
   { valor: 'metas', rotulo: 'Metas' },
-  { valor: 'porVendedor', rotulo: 'Metas por vendedor' },
+  { valor: 'porRepresentante', rotulo: 'Metas por representante' },
   { valor: 'porFornecedor', rotulo: 'Metas por fornecedor' },
 ]
 
-/** Cadastros de apoio às metas — fornecedores, vendedores e metas — e telas de consulta. Só monta para quem é admin. */
+/** Cadastros de apoio às metas — fornecedores, representantes e metas — e telas de consulta. Só monta para quem é admin. */
 export function PainelMetas() {
   const metas = useMetas()
   const [subaba, setSubaba] = useState<Subaba>('fornecedores')
@@ -30,9 +30,9 @@ export function PainelMetas() {
     aberto: false,
     fornecedor: null,
   })
-  const [dialogoVendedor, setDialogoVendedor] = useState<{ aberto: boolean; vendedor: Vendedor | null }>({
+  const [dialogoRepresentante, setDialogoRepresentante] = useState<{ aberto: boolean; representante: Representante | null }>({
     aberto: false,
-    vendedor: null,
+    representante: null,
   })
   const [dialogoMeta, setDialogoMeta] = useState<{ aberto: boolean; meta: Meta | null }>({
     aberto: false,
@@ -40,16 +40,16 @@ export function PainelMetas() {
   })
 
   const primeiraCarga =
-    metas.carregando && !metas.fornecedores.length && !metas.vendedores.length && !metas.metas.length
+    metas.carregando && !metas.fornecedores.length && !metas.representantes.length && !metas.metas.length
 
   function excluirFornecedor(fornecedor: Fornecedor) {
     if (!window.confirm(`Excluir o fornecedor "${fornecedor.nome}"?`)) return
     metas.removerFornecedor(fornecedor.id)
   }
 
-  function excluirVendedor(vendedor: Vendedor) {
-    if (!window.confirm(`Excluir o vendedor "${vendedor.nome}"?`)) return
-    metas.removerVendedor(vendedor.id)
+  function excluirRepresentante(representante: Representante) {
+    if (!window.confirm(`Excluir o representante "${representante.nome}"?`)) return
+    metas.removerRepresentante(representante.id)
   }
 
   function excluirMeta(meta: Meta) {
@@ -62,16 +62,16 @@ export function PainelMetas() {
       <div className="view-head">
         <div>
           <h2>Metas</h2>
-          <p>Cadastre fornecedores, vendedores e metas, e consulte as metas por vendedor ou por fornecedor.</p>
+          <p>Cadastre fornecedores, representantes e metas, e consulte as metas por representante ou por fornecedor.</p>
         </div>
         {subaba === 'fornecedores' ? (
           <button className="btn btn-primary" onClick={() => setDialogoFornecedor({ aberto: true, fornecedor: null })}>
             + Cadastrar fornecedor
           </button>
         ) : null}
-        {subaba === 'vendedores' ? (
-          <button className="btn btn-primary" onClick={() => setDialogoVendedor({ aberto: true, vendedor: null })}>
-            + Cadastrar vendedor
+        {subaba === 'representantes' ? (
+          <button className="btn btn-primary" onClick={() => setDialogoRepresentante({ aberto: true, representante: null })}>
+            + Cadastrar representante
           </button>
         ) : null}
         {subaba === 'metas' ? (
@@ -127,29 +127,29 @@ export function PainelMetas() {
             </EstadoVazio>
           ) : null}
         </div>
-      ) : subaba === 'vendedores' ? (
+      ) : subaba === 'representantes' ? (
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Vendedor</th>
+                <th>Representante</th>
                 <th>Fornecedores</th>
                 <th>E-mail</th>
                 <th>Celular</th>
                 <th />
               </tr>
             </thead>
-            <TabelaVendedores
-              vendedores={metas.vendedores}
-              aoEditar={(vendedor) => setDialogoVendedor({ aberto: true, vendedor })}
-              aoExcluir={excluirVendedor}
+            <TabelaRepresentantes
+              representantes={metas.representantes}
+              aoEditar={(representante) => setDialogoRepresentante({ aberto: true, representante })}
+              aoExcluir={excluirRepresentante}
             />
           </table>
 
-          {!metas.vendedores.length ? (
-            <EstadoVazio titulo="Nenhum vendedor cadastrado" texto="Cadastre os vendedores que terão metas atribuídas.">
-              <button className="btn btn-primary" onClick={() => setDialogoVendedor({ aberto: true, vendedor: null })}>
-                + Cadastrar vendedor
+          {!metas.representantes.length ? (
+            <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre os representantes que terão metas atribuídas.">
+              <button className="btn btn-primary" onClick={() => setDialogoRepresentante({ aberto: true, representante: null })}>
+                + Cadastrar representante
               </button>
             </EstadoVazio>
           ) : null}
@@ -180,15 +180,15 @@ export function PainelMetas() {
             </EstadoVazio>
           ) : null}
         </div>
-      ) : subaba === 'porVendedor' ? (
-        <ConsultaMetasPorVendedor vendedores={metas.vendedores} metas={metas.metas} metasVendedor={metas.metasVendedor} />
+      ) : subaba === 'porRepresentante' ? (
+        <ConsultaMetasPorRepresentante representantes={metas.representantes} metas={metas.metas} metasRepresentante={metas.metasRepresentante} />
       ) : (
         <ConsultaMetasPorFornecedor
           fornecedores={metas.fornecedores}
-          vendedores={metas.vendedores}
+          representantes={metas.representantes}
           metas={metas.metas}
-          metasVendedor={metas.metasVendedor}
-          aoSalvar={metas.salvarMetaVendedor}
+          metasRepresentante={metas.metasRepresentante}
+          aoSalvar={metas.salvarMetaRepresentante}
         />
       )}
 
@@ -200,12 +200,12 @@ export function PainelMetas() {
         />
       ) : null}
 
-      {dialogoVendedor.aberto ? (
-        <FormularioVendedor
-          vendedor={dialogoVendedor.vendedor}
+      {dialogoRepresentante.aberto ? (
+        <FormularioRepresentante
+          representante={dialogoRepresentante.representante}
           fornecedores={metas.fornecedores}
-          aoFechar={() => setDialogoVendedor({ aberto: false, vendedor: null })}
-          aoSalvar={metas.salvarVendedor}
+          aoFechar={() => setDialogoRepresentante({ aberto: false, representante: null })}
+          aoSalvar={metas.salvarRepresentante}
         />
       ) : null}
 

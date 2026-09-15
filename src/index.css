@@ -345,8 +345,8 @@
   }
   .hint.warn { color: var(--st-atrasado); }
 
-  .bloco-vendedor { margin-bottom: 28px; }
-  .bloco-vendedor:last-child { margin-bottom: 0; }
+  .bloco-representante { margin-bottom: 28px; }
+  .bloco-representante:last-child { margin-bottom: 0; }
 
   .icon-btn {
     background: none; border: 0; cursor: pointer; color: var(--ink-3);

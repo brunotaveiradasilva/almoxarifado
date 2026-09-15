@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { MetaVendedorEntrada } from '../lib/api'
-import type { Meta, MetaVendedor } from '../types'
+import type { MetaRepresentanteEntrada } from '../lib/api'
+import type { Meta, MetaRepresentante } from '../types'
 
 interface Props {
-  vendedorId: string
+  representanteId: string
   meta: Meta
-  atribuicao: MetaVendedor | null
-  aoSalvar: (mv: MetaVendedorEntrada, id?: string | null) => Promise<MetaVendedor>
+  atribuicao: MetaRepresentante | null
+  aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
 }
 
 /** Linha editável de uma tabela de metas: Meta e Realizado digitáveis, Falta e % calculados na hora. */
-export function LinhaMetaVendedor({ vendedorId, meta, atribuicao, aoSalvar }: Props) {
+export function LinhaMetaRepresentante({ representanteId, meta, atribuicao, aoSalvar }: Props) {
   const [id, setId] = useState(atribuicao?.id ?? null)
   const [valorMeta, setValorMeta] = useState(atribuicao ? String(atribuicao.valorMeta) : '')
   const [valorRealizado, setValorRealizado] = useState(atribuicao ? String(atribuicao.valorRealizado) : '')
@@ -30,7 +30,7 @@ export function LinhaMetaVendedor({ vendedorId, meta, atribuicao, aoSalvar }: Pr
     setSalvando(true)
     setErro('')
     try {
-      const salva = await aoSalvar({ vendedorId, metaId: meta.id, valorMeta: metaNum, valorRealizado: realizadoNum }, id)
+      const salva = await aoSalvar({ representanteId, metaId: meta.id, valorMeta: metaNum, valorRealizado: realizadoNum }, id)
       setId(salva.id)
       setSalvo({ meta: salva.valorMeta, realizado: salva.valorRealizado })
     } catch {

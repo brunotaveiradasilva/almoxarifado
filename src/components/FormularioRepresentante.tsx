@@ -1,23 +1,23 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
-import type { VendedorEntrada } from '../lib/api'
-import type { Fornecedor, Vendedor } from '../types'
+import type { RepresentanteEntrada } from '../lib/api'
+import type { Fornecedor, Representante } from '../types'
 
 interface Props {
-  /** Vendedor em edição, ou null para um cadastro novo. */
-  vendedor: Vendedor | null
+  /** Representante em edição, ou null para um cadastro novo. */
+  representante: Representante | null
   fornecedores: Fornecedor[]
   aoFechar: () => void
-  aoSalvar: (vendedor: VendedorEntrada, id?: string | null) => void
+  aoSalvar: (representante: RepresentanteEntrada, id?: string | null) => void
 }
 
-export function FormularioVendedor({ vendedor, fornecedores, aoFechar, aoSalvar }: Props) {
-  const [nome, setNome] = useState(vendedor?.nome ?? '')
+export function FormularioRepresentante({ representante, fornecedores, aoFechar, aoSalvar }: Props) {
+  const [nome, setNome] = useState(representante?.nome ?? '')
   const [fornecedorIds, setFornecedorIds] = useState<string[]>(
-    () => vendedor?.fornecedores.map((f) => f.id) ?? [],
+    () => representante?.fornecedores.map((f) => f.id) ?? [],
   )
-  const [email, setEmail] = useState(vendedor?.email ?? '')
-  const [celular, setCelular] = useState(vendedor?.celular ?? '')
+  const [email, setEmail] = useState(representante?.email ?? '')
+  const [celular, setCelular] = useState(representante?.celular ?? '')
   const [erro, setErro] = useState('')
 
   function alternarFornecedor(id: string, marcado: boolean) {
@@ -26,23 +26,23 @@ export function FormularioVendedor({ vendedor, fornecedores, aoFechar, aoSalvar 
 
   function confirmar() {
     const nomeLimpo = nome.trim()
-    if (!nomeLimpo) return setErro('Informe o nome do vendedor.')
+    if (!nomeLimpo) return setErro('Informe o nome do representante.')
     if (!fornecedorIds.length) return setErro('Selecione ao menos um fornecedor.')
 
-    aoSalvar({ nome: nomeLimpo, fornecedorIds, email: email.trim(), celular: celular.trim() }, vendedor?.id)
+    aoSalvar({ nome: nomeLimpo, fornecedorIds, email: email.trim(), celular: celular.trim() }, representante?.id)
     aoFechar()
   }
 
   return (
     <Modal
-      titulo={vendedor ? 'Editar vendedor' : 'Cadastrar vendedor'}
-      textoConfirmar="Salvar vendedor"
+      titulo={representante ? 'Editar representante' : 'Cadastrar representante'}
+      textoConfirmar="Salvar representante"
       mensagem={erro}
       aoFechar={aoFechar}
       aoConfirmar={confirmar}
     >
       <div className="field">
-        <label htmlFor="v-nome">Nome do vendedor</label>
+        <label htmlFor="v-nome">Nome do representante</label>
         <input
           id="v-nome"
           maxLength={80}
@@ -68,7 +68,7 @@ export function FormularioVendedor({ vendedor, fornecedores, aoFechar, aoSalvar 
             ))}
           </div>
         ) : (
-          <p className="hint">Cadastre um fornecedor antes de cadastrar vendedores.</p>
+          <p className="hint">Cadastre um fornecedor antes de cadastrar representantes.</p>
         )}
       </div>
 
