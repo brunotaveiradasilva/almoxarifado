@@ -1,3 +1,6 @@
+/** Nível de acesso do login. ADMIN gerencia usuários, vendedores e tipos de meta. */
+export type Role = 'ADMIN' | 'USUARIO'
+
 /** Status guardado no agendamento. */
 export type Status = 'agendado' | 'retirado' | 'devolvido'
 
@@ -26,6 +29,19 @@ export interface Agendamento {
   devolucao: string
   status: Status
   obs: string
+}
+
+export interface Vendedor {
+  id: string
+  nome: string
+  codigo: string
+}
+
+export interface TipoMeta {
+  id: string
+  nome: string
+  /** Como a meta é medida, ex.: "R$", "unidades", "%". */
+  unidade: string
 }
 
 export interface Dados {
