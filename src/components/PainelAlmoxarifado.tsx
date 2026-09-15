@@ -91,8 +91,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
     <>
       <header className="topbar">
         <div className="brand">
-          <h1>Almoxarifado em Agenda</h1>
-          <span className="sub">controle de retiradas</span>
+          <h1>SulBiologic</h1>
         </div>
         <nav className="tabs" role="tablist">
           <button role="tab" aria-selected={aba === 'agenda'} onClick={() => setAba('agenda')}>
