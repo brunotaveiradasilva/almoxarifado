@@ -120,7 +120,35 @@
   nav.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--accent); }
 
   .session { display: flex; align-items: center; gap: 10px; }
-  .session-usuario { font-size: 13px; color: var(--ink-2); }
+
+  .menu-usuario { position: relative; }
+  .avatar-btn {
+    width: 32px; height: 32px; border-radius: 50%; padding: 0; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .avatar-btn:hover { border-color: var(--line-strong); }
+  .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+  .menu-dropdown {
+    position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; min-width: 200px;
+    background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius);
+    box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .35); padding: 6px;
+    display: flex; flex-direction: column;
+  }
+  :root[data-theme="dark"] .menu-dropdown { border-color: var(--line); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .menu-dropdown { border-color: var(--line); } }
+  .menu-dropdown-usuario {
+    padding: 8px 12px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--divider);
+    font-size: 13px; font-weight: 600; color: var(--ink);
+  }
+  .menu-dropdown button[role="menuitem"] {
+    display: block; width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+    padding: 8px 12px; border-radius: 8px; font-size: 14px; color: var(--ink);
+  }
+  .menu-dropdown button[role="menuitem"]:hover { background: var(--surface-2); }
+  .menu-dropdown-sair { color: var(--st-atrasado); }
 
   /* ---------- login ---------- */
   .login-page {

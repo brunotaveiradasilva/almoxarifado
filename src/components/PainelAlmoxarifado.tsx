@@ -10,12 +10,15 @@ import { FormularioMaterial } from './FormularioMaterial'
 import { FormularioTrocarSenha } from './FormularioTrocarSenha'
 import { PainelUsuarios } from './PainelUsuarios'
 import { PainelMetas } from './PainelMetas'
+import { MenuUsuario } from './MenuUsuario'
 import type { Agendamento, Filtro, Material } from '../types'
 
 interface Props {
   usuario: string
   isAdmin: boolean
+  avatar: string | null
   aoSair: () => void
+  aoTrocarFoto: (avatar: string | null) => Promise<void>
 }
 
 const FILTROS: { valor: Filtro; rotulo: string }[] = [
@@ -27,7 +30,7 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
 ]
 
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
-export function PainelAlmoxarifado({ usuario, isAdmin, aoSair }: Props) {
+export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarFoto }: Props) {
   const app = useAlmoxarifado()
 
   const [aba, setAba] = useState<'agenda' | 'materiais' | 'metas'>('agenda')
@@ -88,8 +91,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, aoSair }: Props) {
     <>
       <header className="topbar">
         <div className="brand">
-          <h1>Almoxarifado em Agenda</h1>
-          <span className="sub">controle de retiradas</span>
+          <h1>SulBiologic</h1>
         </div>
         <nav className="tabs" role="tablist">
           <button role="tab" aria-selected={aba === 'agenda'} onClick={() => setAba('agenda')}>
@@ -105,18 +107,15 @@ export function PainelAlmoxarifado({ usuario, isAdmin, aoSair }: Props) {
           ) : null}
         </nav>
         <div className="session">
-          <span className="session-usuario">{usuario}</span>
-          {isAdmin ? (
-            <button className="btn btn-sm btn-ghost" onClick={() => setDialogoUsuarios(true)}>
-              Usuários
-            </button>
-          ) : null}
-          <button className="btn btn-sm btn-ghost" onClick={() => setDialogoSenha(true)}>
-            Trocar senha
-          </button>
-          <button className="btn btn-sm" onClick={aoSair}>
-            Sair
-          </button>
+          <MenuUsuario
+            usuario={usuario}
+            avatar={avatar}
+            isAdmin={isAdmin}
+            aoAbrirUsuarios={() => setDialogoUsuarios(true)}
+            aoAbrirTrocarSenha={() => setDialogoSenha(true)}
+            aoSair={aoSair}
+            aoTrocarFoto={aoTrocarFoto}
+          />
         </div>
       </header>
 
