@@ -1,5 +1,5 @@
 import { sessaoSalva } from './auth'
-import type { Agendamento, Material, Role, Status, TipoMeta, Vendedor } from '../types'
+import type { Agendamento, Fornecedor, Material, Meta, Role, Status, UnidadeMeta, Vendedor } from '../types'
 
 // Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
 // em produção vem do VITE_API_URL configurado no build do GitHub Pages.
@@ -106,15 +106,39 @@ export function excluirAgendamento(id: string): Promise<void> {
   return requisitar(`/api/agendamentos/${id}`, { method: 'DELETE' })
 }
 
+export function listarFornecedores(): Promise<Fornecedor[]> {
+  return requisitar('/api/fornecedores')
+}
+
+export function criarFornecedor(fornecedor: Omit<Fornecedor, 'id'>): Promise<Fornecedor> {
+  return requisitar('/api/fornecedores', { method: 'POST', body: JSON.stringify(fornecedor) })
+}
+
+export function atualizarFornecedor(id: string, fornecedor: Omit<Fornecedor, 'id'>): Promise<Fornecedor> {
+  return requisitar(`/api/fornecedores/${id}`, { method: 'PUT', body: JSON.stringify(fornecedor) })
+}
+
+export function excluirFornecedor(id: string): Promise<void> {
+  return requisitar(`/api/fornecedores/${id}`, { method: 'DELETE' })
+}
+
+/** Formato aceito pela API para criar/atualizar um vendedor: fornecedores só pelo id. */
+export interface VendedorEntrada {
+  nome: string
+  fornecedorIds: string[]
+  email: string
+  celular: string
+}
+
 export function listarVendedores(): Promise<Vendedor[]> {
   return requisitar('/api/vendedores')
 }
 
-export function criarVendedor(vendedor: Omit<Vendedor, 'id'>): Promise<Vendedor> {
+export function criarVendedor(vendedor: VendedorEntrada): Promise<Vendedor> {
   return requisitar('/api/vendedores', { method: 'POST', body: JSON.stringify(vendedor) })
 }
 
-export function atualizarVendedor(id: string, vendedor: Omit<Vendedor, 'id'>): Promise<Vendedor> {
+export function atualizarVendedor(id: string, vendedor: VendedorEntrada): Promise<Vendedor> {
   return requisitar(`/api/vendedores/${id}`, { method: 'PUT', body: JSON.stringify(vendedor) })
 }
 
@@ -122,18 +146,25 @@ export function excluirVendedor(id: string): Promise<void> {
   return requisitar(`/api/vendedores/${id}`, { method: 'DELETE' })
 }
 
-export function listarTiposMeta(): Promise<TipoMeta[]> {
-  return requisitar('/api/tipos-meta')
+/** Formato aceito pela API para criar/atualizar uma meta: fornecedor só pelo id. */
+export interface MetaEntrada {
+  nome: string
+  fornecedorId: string
+  unidade: UnidadeMeta
 }
 
-export function criarTipoMeta(tipoMeta: Omit<TipoMeta, 'id'>): Promise<TipoMeta> {
-  return requisitar('/api/tipos-meta', { method: 'POST', body: JSON.stringify(tipoMeta) })
+export function listarMetas(): Promise<Meta[]> {
+  return requisitar('/api/metas')
 }
 
-export function atualizarTipoMeta(id: string, tipoMeta: Omit<TipoMeta, 'id'>): Promise<TipoMeta> {
-  return requisitar(`/api/tipos-meta/${id}`, { method: 'PUT', body: JSON.stringify(tipoMeta) })
+export function criarMeta(meta: MetaEntrada): Promise<Meta> {
+  return requisitar('/api/metas', { method: 'POST', body: JSON.stringify(meta) })
 }
 
-export function excluirTipoMeta(id: string): Promise<void> {
-  return requisitar(`/api/tipos-meta/${id}`, { method: 'DELETE' })
+export function atualizarMeta(id: string, meta: MetaEntrada): Promise<Meta> {
+  return requisitar(`/api/metas/${id}`, { method: 'PUT', body: JSON.stringify(meta) })
+}
+
+export function excluirMeta(id: string): Promise<void> {
+  return requisitar(`/api/metas/${id}`, { method: 'DELETE' })
 }

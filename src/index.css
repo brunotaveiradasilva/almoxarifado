@@ -324,6 +324,17 @@
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
   @media (max-width: 520px) { .grid-2 { grid-template-columns: 1fr; } .view-head h2 { font-size: 32px; } }
 
+  .checklist {
+    display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px;
+  }
+  .checklist label { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+
+  .consulta-filtro { max-width: 320px; margin-bottom: 20px; }
+  .consulta-info { margin: -8px 0 20px; }
+  .consulta-subtitulo { font-size: 17px; font-weight: 600; letter-spacing: -.015em; margin: 28px 0 12px; }
+  .consulta-subtitulo:first-of-type { margin-top: 0; }
+
   .icon-btn {
     background: none; border: 0; cursor: pointer; color: var(--ink-3);
     font-size: 22px; line-height: 1; padding: 4px 8px; border-radius: 50%;
