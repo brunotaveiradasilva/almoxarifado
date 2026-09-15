@@ -44,16 +44,26 @@ async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> 
     throw new ErroApi(corpo?.erro || `O servidor respondeu com erro (${resposta.status}).`)
   }
 
-  if (resposta.status === 204) return undefined as T
-  return (await resposta.json()) as T
+  // Corpo vazio (204, ou 201/200 sem corpo, como em criarUsuario/excluirUsuario) não é JSON
+  // válido — .json() quebraria nele. Só tenta interpretar como JSON se realmente veio algo.
+  const texto = await resposta.text()
+  return (texto ? JSON.parse(texto) : undefined) as T
 }
 
 export function login(usuario: string, senha: string): Promise<{ token: string; usuario: string }> {
   return requisitar('/api/auth/login', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
 }
 
+export function listarUsuarios(): Promise<string[]> {
+  return requisitar('/api/auth/usuarios')
+}
+
 export function criarUsuario(usuario: string, senha: string): Promise<void> {
   return requisitar('/api/auth/usuarios', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
+}
+
+export function excluirUsuario(usuario: string): Promise<void> {
+  return requisitar(`/api/auth/usuarios/${encodeURIComponent(usuario)}`, { method: 'DELETE' })
 }
 
 export function trocarSenha(senhaAtual: string, novaSenha: string): Promise<void> {

@@ -8,6 +8,7 @@ import { TabelaMateriais } from './TabelaMateriais'
 import { FormularioAgendamento } from './FormularioAgendamento'
 import { FormularioMaterial } from './FormularioMaterial'
 import { FormularioTrocarSenha } from './FormularioTrocarSenha'
+import { PainelUsuarios } from './PainelUsuarios'
 import type { Agendamento, Filtro, Material } from '../types'
 
 interface Props {
@@ -44,6 +45,7 @@ export function PainelAlmoxarifado({ usuario, aoSair }: Props) {
   })
 
   const [dialogoSenha, setDialogoSenha] = useState(false)
+  const [dialogoUsuarios, setDialogoUsuarios] = useState(false)
 
   const primeiraCarga = app.carregando && !app.materiais.length && !app.agendamentos.length
 
@@ -97,6 +99,9 @@ export function PainelAlmoxarifado({ usuario, aoSair }: Props) {
         </nav>
         <div className="session">
           <span className="session-usuario">{usuario}</span>
+          <button className="btn btn-sm btn-ghost" onClick={() => setDialogoUsuarios(true)}>
+            Usuários
+          </button>
           <button className="btn btn-sm btn-ghost" onClick={() => setDialogoSenha(true)}>
             Trocar senha
           </button>
@@ -293,6 +298,10 @@ export function PainelAlmoxarifado({ usuario, aoSair }: Props) {
       ) : null}
 
       {dialogoSenha ? <FormularioTrocarSenha aoFechar={() => setDialogoSenha(false)} /> : null}
+
+      {dialogoUsuarios ? (
+        <PainelUsuarios usuarioAtual={usuario} aoFechar={() => setDialogoUsuarios(false)} />
+      ) : null}
     </>
   )
 }
