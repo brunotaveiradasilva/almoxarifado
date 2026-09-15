@@ -1,16 +1,20 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
+import { LinhaMetaRepresentante } from './LinhaMetaRepresentante'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { Fornecedor, Meta, Vendedor } from '../types'
+import type { MetaRepresentanteEntrada } from '../lib/api'
+import type { Fornecedor, Meta, MetaRepresentante, Representante } from '../types'
 
 interface Props {
   fornecedores: Fornecedor[]
-  vendedores: Vendedor[]
+  representantes: Representante[]
   metas: Meta[]
+  metasRepresentante: MetaRepresentante[]
+  aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
 }
 
-/** Só visualização: metas e vendedores de um fornecedor escolhido. */
-export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas }: Props) {
+/** Metas e representantes de um fornecedor escolhido — o valor de meta de cada representante dá pra editar direto aqui. */
+export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas, metasRepresentante, aoSalvar }: Props) {
   const [fornecedorId, setFornecedorId] = useState(fornecedores[0]?.id ?? '')
 
   const metasDoFornecedor = useMemo(
@@ -18,9 +22,9 @@ export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas }: 
     [metas, fornecedorId],
   )
 
-  const vendedoresDoFornecedor = useMemo(
-    () => vendedores.filter((v) => v.fornecedores.some((f) => f.id === fornecedorId)),
-    [vendedores, fornecedorId],
+  const representantesDoFornecedor = useMemo(
+    () => representantes.filter((v) => v.fornecedores.some((f) => f.id === fornecedorId)),
+    [representantes, fornecedorId],
   )
 
   if (!fornecedores.length) {
@@ -66,31 +70,53 @@ export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas }: 
         ) : null}
       </div>
 
-      <h3 className="consulta-subtitulo">Vendedores</h3>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Vendedor</th>
-              <th>E-mail</th>
-              <th>Celular</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vendedoresDoFornecedor.map((v) => (
-              <tr key={v.id}>
-                <td className="cell-material">{v.nome}</td>
-                <td>{v.email || '—'}</td>
-                <td>{v.celular || '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <h3 className="consulta-subtitulo">Representantes</h3>
 
-        {!vendedoresDoFornecedor.length ? (
-          <EstadoVazio titulo="Nenhum vendedor pra esse fornecedor" texto="Nenhum vendedor trabalha pra esse fornecedor ainda." />
-        ) : null}
-      </div>
+      {!representantesDoFornecedor.length ? (
+        <div className="table-wrap">
+          <EstadoVazio
+            titulo="Nenhum representante pra esse fornecedor"
+            texto="Nenhum representante trabalha pra esse fornecedor ainda."
+          />
+        </div>
+      ) : !metasDoFornecedor.length ? (
+        <p className="hint">Cadastre uma meta pra esse fornecedor pra poder atribuir valores aos representantes.</p>
+      ) : (
+        representantesDoFornecedor.map((v) => (
+          <div key={v.id} className="bloco-representante">
+            <p className="consulta-info">
+              <strong>{v.nome}</strong>
+              {v.email ? ` · ${v.email}` : ''}
+              {v.celular ? ` · ${v.celular}` : ''}
+            </p>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Meta</th>
+                    <th>Unidade</th>
+                    <th className="num">Meta</th>
+                    <th className="num">Realizado</th>
+                    <th className="num">Falta</th>
+                    <th className="num">Realizado %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metasDoFornecedor.map((meta) => (
+                    <LinhaMetaRepresentante
+                      key={`${v.id}:${meta.id}`}
+                      representanteId={v.id}
+                      meta={meta}
+                      atribuicao={metasRepresentante.find((mv) => mv.representante.id === v.id && mv.meta.id === meta.id) ?? null}
+                      aoSalvar={aoSalvar}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   )
 }

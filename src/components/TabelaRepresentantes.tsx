@@ -1,15 +1,15 @@
-import type { Vendedor } from '../types'
+import type { Representante } from '../types'
 
 interface Props {
-  vendedores: Vendedor[]
-  aoEditar: (vendedor: Vendedor) => void
-  aoExcluir: (vendedor: Vendedor) => void
+  representantes: Representante[]
+  aoEditar: (representante: Representante) => void
+  aoExcluir: (representante: Representante) => void
 }
 
-export function TabelaVendedores({ vendedores, aoEditar, aoExcluir }: Props) {
+export function TabelaRepresentantes({ representantes, aoEditar, aoExcluir }: Props) {
   return (
     <tbody>
-      {vendedores.map((v) => (
+      {representantes.map((v) => (
         <tr key={v.id}>
           <td className="cell-material">{v.nome}</td>
           <td className="cell-obs">{v.fornecedores.map((f) => f.nome).join(', ') || '—'}</td>
