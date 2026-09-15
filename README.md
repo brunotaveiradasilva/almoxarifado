@@ -22,6 +22,7 @@ Quem empresta equipamento — almoxarifado, escola, locadora, equipe de campo �
 - Barra de ocupação por material (quanto está fora do estoque)
 - Tema claro e escuro, seguindo a preferência do sistema
 - Dados centralizados na [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api): o mesmo cadastro aparece em qualquer computador
+- Login obrigatório: nada do almoxarifado carrega sem entrar com usuário e senha
 
 ![Cadastro de materiais](docs/materiais.png)
 
@@ -61,19 +62,21 @@ npm run lint      # análise estática com oxlint
 
 ```
 src/
-├── App.tsx                  # composição das telas, abas, filtros e diálogos
+├── App.tsx                  # guarda de login: decide entre TelaLogin e PainelAlmoxarifado
 ├── index.css                # identidade visual e temas
 ├── types.ts                 # Material, Agendamento, Status
 ├── lib/
 │   ├── datas.ts             # datas em ISO, formatação e diferença em dias
 │   ├── regras.ts            # regras de negócio (atraso, disponibilidade, filtros)
-│   ├── api.ts               # cliente HTTP da almoxarifado-api
+│   ├── api.ts               # cliente HTTP da almoxarifado-api (anexa o token, trata 401)
+│   ├── auth.ts              # sessão (token + usuário) salva no localStorage
 │   └── idTemporario.ts      # id provisório pra UI otimista, até a API confirmar
 ├── hooks/
-│   └── useAlmoxarifado.ts   # estado da aplicação e ações que o alteram
+│   ├── useAlmoxarifado.ts   # estado da aplicação e ações que o alteram
+│   └── useAuth.ts           # sessão do usuário: entrar, sair, erro de login
 ├── data/
 │   └── exemplos.ts          # dados fictícios para demonstração
-└── components/              # componentes de tela (tabelas, formulários, painel)
+└── components/              # PainelAlmoxarifado (telas, abas, filtros e diálogos), TelaLogin e demais
 ```
 
 As regras de negócio ficam em `src/lib/regras.ts`, separadas da interface: são funções puras que recebem os dados e devolvem o resultado, o que facilita testar e reaproveitar caso o projeto ganhe um back-end depois.
@@ -97,8 +100,11 @@ O caminho base do build é ajustado automaticamente pelo workflow, através da v
 
 ## Limitações conhecidas
 
-- A API (veja [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api)) ainda não tem autenticação: qualquer um com a URL pode ler e alterar os dados.
+- Um login só: todo mundo autenticado enxerga e edita os mesmos materiais e agendamentos, sem
+  permissões diferentes por usuário.
 - Não há histórico de alterações — só o estado atual de cada material e agendamento.
+- Não existe "esqueci minha senha": trocar senha ou criar novo login se faz direto na
+  [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api#login) por enquanto.
 
 ## Licença
 

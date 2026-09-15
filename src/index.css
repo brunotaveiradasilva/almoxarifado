@@ -119,6 +119,26 @@
   nav.tabs button:hover { color: var(--ink); }
   nav.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--accent); }
 
+  .session { display: flex; align-items: center; gap: 10px; }
+  .session-usuario { font-size: 13px; color: var(--ink-2); }
+
+  /* ---------- login ---------- */
+  .login-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 22px; background: var(--ground);
+  }
+  .login-card {
+    width: 100%; max-width: 360px;
+    background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow); padding: 34px 30px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .login-brand { text-align: center; margin-bottom: 6px; }
+  .login-brand h1 { font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+  .login-brand .sub { display: block; margin-top: 4px; font-size: 13px; color: var(--ink-3); }
+  .login-erro { margin: 0; font-size: 13px; color: var(--st-atrasado); }
+  .login-submit { width: 100%; justify-content: center; }
+
   /* ---------- layout ---------- */
   main { max-width: 1120px; margin: 0 auto; padding: 44px 22px 96px; }
   .view[hidden] { display: none; }

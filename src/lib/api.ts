@@ -1,3 +1,4 @@
+import { sessaoSalva } from './auth'
 import type { Agendamento, Material, Status } from '../types'
 
 // Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
@@ -7,15 +8,35 @@ const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080').repla
 /** Erro de rede ou resposta não-2xx da API, com a mensagem já pronta pra mostrar ao usuário. */
 export class ErroApi extends Error {}
 
+// Avisado quando a API devolve 401 (token ausente, inválido ou expirado), pra quem estiver
+// cuidando da sessão (useAuth) derrubar o usuário de volta pra tela de login.
+let aoExpirar: (() => void) | null = null
+export function aoSessaoExpirar(fn: (() => void) | null): void {
+  aoExpirar = fn
+}
+
 async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> {
+  const sessao = sessaoSalva()
+
   let resposta: Response
   try {
     resposta = await fetch(`${BASE_URL}${caminho}`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(sessao ? { Authorization: `Bearer ${sessao.token}` } : {}),
+      },
       ...opcoes,
     })
   } catch {
     throw new ErroApi('Não foi possível falar com o servidor. Verifique sua conexão e tente de novo.')
+  }
+
+  // 401 com sessão salva = token expirou/foi revogado: derruba pra tela de login com um aviso
+  // genérico. 401 sem sessão (ex.: senha errada no login) segue pro tratamento normal abaixo,
+  // que usa a mensagem de erro de verdade que a API mandou.
+  if (resposta.status === 401 && sessao) {
+    aoExpirar?.()
+    throw new ErroApi('Sua sessão expirou. Entre de novo.')
   }
 
   if (!resposta.ok) {
@@ -25,6 +46,14 @@ async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> 
 
   if (resposta.status === 204) return undefined as T
   return (await resposta.json()) as T
+}
+
+export function login(usuario: string, senha: string): Promise<{ token: string; usuario: string }> {
+  return requisitar('/api/auth/login', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
+}
+
+export function criarUsuario(usuario: string, senha: string): Promise<void> {
+  return requisitar('/api/auth/usuarios', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
 }
 
 export function listarMateriais(): Promise<Material[]> {
