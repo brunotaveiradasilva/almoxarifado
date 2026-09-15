@@ -1,28 +1,35 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
-import type { Vendedor } from '../types'
+import type { VendedorEntrada } from '../lib/api'
+import type { Fornecedor, Vendedor } from '../types'
 
 interface Props {
   /** Vendedor em edição, ou null para um cadastro novo. */
   vendedor: Vendedor | null
+  fornecedores: Fornecedor[]
   aoFechar: () => void
-  aoSalvar: (vendedor: Omit<Vendedor, 'id'>, id?: string | null) => void
+  aoSalvar: (vendedor: VendedorEntrada, id?: string | null) => void
 }
 
-const VAZIO = { nome: '', codigo: '' }
-
-export function FormularioVendedor({ vendedor, aoFechar, aoSalvar }: Props) {
-  const [form, setForm] = useState(() => (vendedor ? { nome: vendedor.nome, codigo: vendedor.codigo } : VAZIO))
+export function FormularioVendedor({ vendedor, fornecedores, aoFechar, aoSalvar }: Props) {
+  const [nome, setNome] = useState(vendedor?.nome ?? '')
+  const [fornecedorIds, setFornecedorIds] = useState<string[]>(
+    () => vendedor?.fornecedores.map((f) => f.id) ?? [],
+  )
+  const [email, setEmail] = useState(vendedor?.email ?? '')
+  const [celular, setCelular] = useState(vendedor?.celular ?? '')
   const [erro, setErro] = useState('')
 
+  function alternarFornecedor(id: string, marcado: boolean) {
+    setFornecedorIds((atual) => (marcado ? [...atual, id] : atual.filter((f) => f !== id)))
+  }
+
   function confirmar() {
-    const nome = form.nome.trim()
-    const codigo = form.codigo.trim()
+    const nomeLimpo = nome.trim()
+    if (!nomeLimpo) return setErro('Informe o nome do vendedor.')
+    if (!fornecedorIds.length) return setErro('Selecione ao menos um fornecedor.')
 
-    if (!nome) return setErro('Informe o nome do vendedor.')
-    if (!codigo) return setErro('Informe o código/matrícula do vendedor.')
-
-    aoSalvar({ nome, codigo }, vendedor?.id)
+    aoSalvar({ nome: nomeLimpo, fornecedorIds, email: email.trim(), celular: celular.trim() }, vendedor?.id)
     aoFechar()
   }
 
@@ -40,19 +47,52 @@ export function FormularioVendedor({ vendedor, aoFechar, aoSalvar }: Props) {
           id="v-nome"
           maxLength={80}
           placeholder="Ex.: Maria Souza"
-          value={form.nome}
-          onChange={(e) => setForm({ ...form, nome: e.target.value })}
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
         />
       </div>
 
       <div className="field">
-        <label htmlFor="v-codigo">Código/matrícula</label>
+        <label>Fornecedores</label>
+        {fornecedores.length ? (
+          <div className="checklist">
+            {fornecedores.map((f) => (
+              <label key={f.id}>
+                <input
+                  type="checkbox"
+                  checked={fornecedorIds.includes(f.id)}
+                  onChange={(e) => alternarFornecedor(f.id, e.target.checked)}
+                />
+                {f.nome}
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p className="hint">Cadastre um fornecedor antes de cadastrar vendedores.</p>
+        )}
+      </div>
+
+      <div className="field">
+        <label htmlFor="v-email">E-mail</label>
         <input
-          id="v-codigo"
-          maxLength={40}
-          placeholder="Ex.: V-0231"
-          value={form.codigo}
-          onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+          id="v-email"
+          type="email"
+          maxLength={120}
+          placeholder="Ex.: maria@exemplo.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+
+      <div className="field">
+        <label htmlFor="v-celular">Celular</label>
+        <input
+          id="v-celular"
+          type="tel"
+          maxLength={20}
+          placeholder="Ex.: (11) 91234-5678"
+          value={celular}
+          onChange={(e) => setCelular(e.target.value)}
         />
       </div>
     </Modal>

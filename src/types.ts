@@ -1,4 +1,4 @@
-/** Nível de acesso do login. ADMIN gerencia usuários, vendedores e tipos de meta. */
+/** Nível de acesso do login. ADMIN gerencia usuários, fornecedores, vendedores e metas. */
 export type Role = 'ADMIN' | 'USUARIO'
 
 /** Status guardado no agendamento. */
@@ -31,17 +31,29 @@ export interface Agendamento {
   obs: string
 }
 
+export interface Fornecedor {
+  id: string
+  nome: string
+}
+
 export interface Vendedor {
   id: string
   nome: string
-  codigo: string
+  /** Um vendedor pode trabalhar para mais de um fornecedor. */
+  fornecedores: Fornecedor[]
+  email: string
+  celular: string
 }
 
-export interface TipoMeta {
+/** Como uma meta é medida. */
+export type UnidadeMeta = 'KG' | 'UNIDADE' | 'REAL'
+
+export interface Meta {
   id: string
   nome: string
-  /** Como a meta é medida, ex.: "R$", "unidades", "%". */
-  unidade: string
+  /** Uma meta pertence a um único fornecedor. */
+  fornecedor: Fornecedor
+  unidade: UnidadeMeta
 }
 
 export interface Dados {

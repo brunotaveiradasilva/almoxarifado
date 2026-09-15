@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as api from '../lib/api'
 import { ErroApi } from '../lib/api'
+import type { MetaEntrada, VendedorEntrada } from '../lib/api'
 import { idTemporario } from '../lib/idTemporario'
-import type { TipoMeta, Vendedor } from '../types'
+import type { Fornecedor, Meta, Vendedor } from '../types'
 
 function mensagemErro(erro: unknown): string {
   return erro instanceof ErroApi ? erro.message : 'Algo deu errado. Tente de novo.'
 }
 
 /**
- * Estado dos cadastros de vendedores e tipos de meta, só para quem é admin.
- * Mesmo padrão otimista do useAlmoxarifado: atualiza a tela na hora e confirma com a API depois.
+ * Estado dos cadastros de apoio às metas — fornecedores, vendedores e metas —, só para quem é
+ * admin. Mesmo padrão otimista do useAlmoxarifado: atualiza a tela na hora e confirma com a API
+ * depois; se a API recusar, desfaz e mostra o erro.
  */
 export function useMetas() {
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
   const [vendedores, setVendedores] = useState<Vendedor[]>([])
-  const [tiposMeta, setTiposMeta] = useState<TipoMeta[]>([])
+  const [metas, setMetas] = useState<Meta[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -22,12 +25,14 @@ export function useMetas() {
     setCarregando(true)
     setErro(null)
     try {
-      const [vendedoresCarregados, tiposMetaCarregados] = await Promise.all([
+      const [fornecedoresCarregados, vendedoresCarregados, metasCarregadas] = await Promise.all([
+        api.listarFornecedores(),
         api.listarVendedores(),
-        api.listarTiposMeta(),
+        api.listarMetas(),
       ])
+      setFornecedores(fornecedoresCarregados)
       setVendedores(vendedoresCarregados)
-      setTiposMeta(tiposMetaCarregados)
+      setMetas(metasCarregadas)
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
@@ -39,34 +44,73 @@ export function useMetas() {
     carregarTudo()
   }, [carregarTudo])
 
-  const salvarVendedor = useCallback(
-    (vendedor: Omit<Vendedor, 'id'>, id?: string | null) => {
+  const salvarFornecedor = useCallback(
+    (fornecedor: Omit<Fornecedor, 'id'>, id?: string | null) => {
       setErro(null)
 
       if (id) {
-        const anterior = vendedores
+        const anterior = fornecedores
+        setFornecedores((atual) => atual.map((f) => (f.id === id ? { ...f, ...fornecedor } : f)))
+        api
+          .atualizarFornecedor(id, fornecedor)
+          .then((atualizado) => setFornecedores((atual) => atual.map((f) => (f.id === id ? atualizado : f))))
+          .catch((e) => {
+            setErro(mensagemErro(e))
+            setFornecedores(anterior)
+          })
+        return
+      }
+
+      const provisorio = idTemporario()
+      setFornecedores((atual) => [...atual, { ...fornecedor, id: provisorio }])
+      api
+        .criarFornecedor(fornecedor)
+        .then((criado) => setFornecedores((atual) => atual.map((f) => (f.id === provisorio ? criado : f))))
+        .catch((e) => {
+          setErro(mensagemErro(e))
+          setFornecedores((atual) => atual.filter((f) => f.id !== provisorio))
+        })
+    },
+    [fornecedores],
+  )
+
+  const removerFornecedor = useCallback(
+    (id: string) => {
+      setErro(null)
+      const anterior = fornecedores
+      setFornecedores((atual) => atual.filter((f) => f.id !== id))
+      api.excluirFornecedor(id).catch((e) => {
+        setErro(mensagemErro(e))
+        setFornecedores(anterior)
+      })
+    },
+    [fornecedores],
+  )
+
+  const salvarVendedor = useCallback(
+    (vendedor: VendedorEntrada, id?: string | null) => {
+      setErro(null)
+
+      if (id) {
+        // Otimista só com o que dá pra saber na hora (nome, email, celular); os fornecedores
+        // completos (nome incluso) só voltam certos na resposta da API.
         setVendedores((atual) => atual.map((v) => (v.id === id ? { ...v, ...vendedor } : v)))
         api
           .atualizarVendedor(id, vendedor)
           .then((atualizado) => setVendedores((atual) => atual.map((v) => (v.id === id ? atualizado : v))))
           .catch((e) => {
             setErro(mensagemErro(e))
-            setVendedores(anterior)
+            carregarTudo()
           })
         return
       }
 
-      const provisorio = idTemporario()
-      setVendedores((atual) => [...atual, { ...vendedor, id: provisorio }])
       api
         .criarVendedor(vendedor)
-        .then((criado) => setVendedores((atual) => atual.map((v) => (v.id === provisorio ? criado : v))))
-        .catch((e) => {
-          setErro(mensagemErro(e))
-          setVendedores((atual) => atual.filter((v) => v.id !== provisorio))
-        })
+        .then((criado) => setVendedores((atual) => [...atual, criado]))
+        .catch((e) => setErro(mensagemErro(e)))
     },
-    [vendedores],
+    [carregarTudo],
   )
 
   const removerVendedor = useCallback(
@@ -82,58 +126,48 @@ export function useMetas() {
     [vendedores],
   )
 
-  const salvarTipoMeta = useCallback(
-    (tipoMeta: Omit<TipoMeta, 'id'>, id?: string | null) => {
+  const salvarMeta = useCallback(
+    (meta: MetaEntrada, id?: string | null) => {
       setErro(null)
 
       if (id) {
-        const anterior = tiposMeta
-        setTiposMeta((atual) => atual.map((t) => (t.id === id ? { ...t, ...tipoMeta } : t)))
         api
-          .atualizarTipoMeta(id, tipoMeta)
-          .then((atualizado) => setTiposMeta((atual) => atual.map((t) => (t.id === id ? atualizado : t))))
-          .catch((e) => {
-            setErro(mensagemErro(e))
-            setTiposMeta(anterior)
-          })
+          .atualizarMeta(id, meta)
+          .then((atualizada) => setMetas((atual) => atual.map((m) => (m.id === id ? atualizada : m))))
+          .catch((e) => setErro(mensagemErro(e)))
         return
       }
 
-      const provisorio = idTemporario()
-      setTiposMeta((atual) => [...atual, { ...tipoMeta, id: provisorio }])
       api
-        .criarTipoMeta(tipoMeta)
-        .then((criado) => setTiposMeta((atual) => atual.map((t) => (t.id === provisorio ? criado : t))))
-        .catch((e) => {
-          setErro(mensagemErro(e))
-          setTiposMeta((atual) => atual.filter((t) => t.id !== provisorio))
-        })
+        .criarMeta(meta)
+        .then((criada) => setMetas((atual) => [...atual, criada]))
+        .catch((e) => setErro(mensagemErro(e)))
     },
-    [tiposMeta],
+    [],
   )
 
-  const removerTipoMeta = useCallback(
-    (id: string) => {
-      setErro(null)
-      const anterior = tiposMeta
-      setTiposMeta((atual) => atual.filter((t) => t.id !== id))
-      api.excluirTipoMeta(id).catch((e) => {
-        setErro(mensagemErro(e))
-        setTiposMeta(anterior)
-      })
-    },
-    [tiposMeta],
-  )
+  const removerMeta = useCallback((id: string) => {
+    setErro(null)
+    const anterior = metas
+    setMetas((atual) => atual.filter((m) => m.id !== id))
+    api.excluirMeta(id).catch((e) => {
+      setErro(mensagemErro(e))
+      setMetas(anterior)
+    })
+  }, [metas])
 
   return {
+    fornecedores,
     vendedores,
-    tiposMeta,
+    metas,
     carregando,
     erro,
     tentarNovamente: carregarTudo,
+    salvarFornecedor,
+    removerFornecedor,
     salvarVendedor,
     removerVendedor,
-    salvarTipoMeta,
-    removerTipoMeta,
+    salvarMeta,
+    removerMeta,
   }
 }
