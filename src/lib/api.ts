@@ -50,7 +50,10 @@ async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> 
   return (texto ? JSON.parse(texto) : undefined) as T
 }
 
-export function login(usuario: string, senha: string): Promise<{ token: string; usuario: string; role: Role }> {
+export function login(
+  usuario: string,
+  senha: string,
+): Promise<{ token: string; usuario: string; role: Role; avatar: string | null }> {
   return requisitar('/api/auth/login', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
 }
 
@@ -68,6 +71,10 @@ export function excluirUsuario(usuario: string): Promise<void> {
 
 export function trocarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
   return requisitar('/api/auth/senha', { method: 'PATCH', body: JSON.stringify({ senhaAtual, novaSenha }) })
+}
+
+export function atualizarAvatar(avatar: string | null): Promise<void> {
+  return requisitar('/api/auth/avatar', { method: 'PATCH', body: JSON.stringify({ avatar }) })
 }
 
 export function listarMateriais(): Promise<Material[]> {
