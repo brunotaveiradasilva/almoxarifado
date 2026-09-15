@@ -56,6 +56,10 @@ export function criarUsuario(usuario: string, senha: string): Promise<void> {
   return requisitar('/api/auth/usuarios', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
 }
 
+export function trocarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
+  return requisitar('/api/auth/senha', { method: 'PATCH', body: JSON.stringify({ senhaAtual, novaSenha }) })
+}
+
 export function listarMateriais(): Promise<Material[]> {
   return requisitar('/api/materiais')
 }
