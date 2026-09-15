@@ -13,5 +13,5 @@ export default function App() {
     return <TelaLogin entrando={auth.entrando} erro={auth.erro} aoEntrar={auth.entrar} />
   }
 
-  return <PainelAlmoxarifado usuario={auth.usuario} aoSair={auth.sair} />
+  return <PainelAlmoxarifado usuario={auth.usuario} isAdmin={auth.isAdmin} aoSair={auth.sair} />
 }

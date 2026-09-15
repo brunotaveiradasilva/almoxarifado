@@ -1,5 +1,5 @@
 import { sessaoSalva } from './auth'
-import type { Agendamento, Material, Status } from '../types'
+import type { Agendamento, Material, Role, Status, TipoMeta, Vendedor } from '../types'
 
 // Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
 // em produção vem do VITE_API_URL configurado no build do GitHub Pages.
@@ -50,7 +50,7 @@ async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> 
   return (texto ? JSON.parse(texto) : undefined) as T
 }
 
-export function login(usuario: string, senha: string): Promise<{ token: string; usuario: string }> {
+export function login(usuario: string, senha: string): Promise<{ token: string; usuario: string; role: Role }> {
   return requisitar('/api/auth/login', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
 }
 
@@ -104,4 +104,36 @@ export function definirStatusAgendamento(id: string, status: Status): Promise<Ag
 
 export function excluirAgendamento(id: string): Promise<void> {
   return requisitar(`/api/agendamentos/${id}`, { method: 'DELETE' })
+}
+
+export function listarVendedores(): Promise<Vendedor[]> {
+  return requisitar('/api/vendedores')
+}
+
+export function criarVendedor(vendedor: Omit<Vendedor, 'id'>): Promise<Vendedor> {
+  return requisitar('/api/vendedores', { method: 'POST', body: JSON.stringify(vendedor) })
+}
+
+export function atualizarVendedor(id: string, vendedor: Omit<Vendedor, 'id'>): Promise<Vendedor> {
+  return requisitar(`/api/vendedores/${id}`, { method: 'PUT', body: JSON.stringify(vendedor) })
+}
+
+export function excluirVendedor(id: string): Promise<void> {
+  return requisitar(`/api/vendedores/${id}`, { method: 'DELETE' })
+}
+
+export function listarTiposMeta(): Promise<TipoMeta[]> {
+  return requisitar('/api/tipos-meta')
+}
+
+export function criarTipoMeta(tipoMeta: Omit<TipoMeta, 'id'>): Promise<TipoMeta> {
+  return requisitar('/api/tipos-meta', { method: 'POST', body: JSON.stringify(tipoMeta) })
+}
+
+export function atualizarTipoMeta(id: string, tipoMeta: Omit<TipoMeta, 'id'>): Promise<TipoMeta> {
+  return requisitar(`/api/tipos-meta/${id}`, { method: 'PUT', body: JSON.stringify(tipoMeta) })
+}
+
+export function excluirTipoMeta(id: string): Promise<void> {
+  return requisitar(`/api/tipos-meta/${id}`, { method: 'DELETE' })
 }

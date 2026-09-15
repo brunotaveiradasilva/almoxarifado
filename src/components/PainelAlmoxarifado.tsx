@@ -9,10 +9,12 @@ import { FormularioAgendamento } from './FormularioAgendamento'
 import { FormularioMaterial } from './FormularioMaterial'
 import { FormularioTrocarSenha } from './FormularioTrocarSenha'
 import { PainelUsuarios } from './PainelUsuarios'
+import { PainelMetas } from './PainelMetas'
 import type { Agendamento, Filtro, Material } from '../types'
 
 interface Props {
   usuario: string
+  isAdmin: boolean
   aoSair: () => void
 }
 
@@ -25,10 +27,10 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
 ]
 
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
-export function PainelAlmoxarifado({ usuario, aoSair }: Props) {
+export function PainelAlmoxarifado({ usuario, isAdmin, aoSair }: Props) {
   const app = useAlmoxarifado()
 
-  const [aba, setAba] = useState<'agenda' | 'materiais'>('agenda')
+  const [aba, setAba] = useState<'agenda' | 'materiais' | 'metas'>('agenda')
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [buscaAgenda, setBuscaAgenda] = useState('')
   const [buscaMaterial, setBuscaMaterial] = useState('')
@@ -96,12 +98,19 @@ export function PainelAlmoxarifado({ usuario, aoSair }: Props) {
           <button role="tab" aria-selected={aba === 'materiais'} onClick={() => setAba('materiais')}>
             Materiais
           </button>
+          {isAdmin ? (
+            <button role="tab" aria-selected={aba === 'metas'} onClick={() => setAba('metas')}>
+              Metas
+            </button>
+          ) : null}
         </nav>
         <div className="session">
           <span className="session-usuario">{usuario}</span>
-          <button className="btn btn-sm btn-ghost" onClick={() => setDialogoUsuarios(true)}>
-            Usuários
-          </button>
+          {isAdmin ? (
+            <button className="btn btn-sm btn-ghost" onClick={() => setDialogoUsuarios(true)}>
+              Usuários
+            </button>
+          ) : null}
           <button className="btn btn-sm btn-ghost" onClick={() => setDialogoSenha(true)}>
             Trocar senha
           </button>
@@ -205,6 +214,8 @@ export function PainelAlmoxarifado({ usuario, aoSair }: Props) {
               ) : null}
             </div>
           </section>
+        ) : aba === 'metas' ? (
+          <PainelMetas />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">

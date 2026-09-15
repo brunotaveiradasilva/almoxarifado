@@ -100,8 +100,8 @@ O caminho base do build é ajustado automaticamente pelo workflow, através da v
 
 ## Limitações conhecidas
 
-- Um login só: todo mundo autenticado enxerga e edita os mesmos materiais e agendamentos, sem
-  permissões diferentes por usuário.
+- Materiais e agendamentos continuam sem permissão por usuário: qualquer login vê e edita todos.
+  Só a aba **Metas** e o gerenciamento de **Usuários** são restritos a quem tem papel ADMIN.
 - Não há histórico de alterações — só o estado atual de cada material e agendamento.
 - Não existe "esqueci minha senha": trocar senha ou criar novo login se faz direto na
   [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api#login) por enquanto.
