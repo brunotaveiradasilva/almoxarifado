@@ -181,7 +181,12 @@ export function PainelMetas() {
           ) : null}
         </div>
       ) : subaba === 'porVendedor' ? (
-        <ConsultaMetasPorVendedor vendedores={metas.vendedores} metas={metas.metas} />
+        <ConsultaMetasPorVendedor
+          vendedores={metas.vendedores}
+          metas={metas.metas}
+          metasVendedor={metas.metasVendedor}
+          aoSalvar={metas.salvarMetaVendedor}
+        />
       ) : (
         <ConsultaMetasPorFornecedor
           fornecedores={metas.fornecedores}

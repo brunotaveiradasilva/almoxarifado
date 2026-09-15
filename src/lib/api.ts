@@ -1,5 +1,5 @@
 import { sessaoSalva } from './auth'
-import type { Agendamento, Fornecedor, Material, Meta, Role, Status, UnidadeMeta, Vendedor } from '../types'
+import type { Agendamento, Fornecedor, Material, Meta, MetaVendedor, Role, Status, UnidadeMeta, Vendedor } from '../types'
 
 // Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
 // em produção vem do VITE_API_URL configurado no build do GitHub Pages.
@@ -167,4 +167,28 @@ export function atualizarMeta(id: string, meta: MetaEntrada): Promise<Meta> {
 
 export function excluirMeta(id: string): Promise<void> {
   return requisitar(`/api/metas/${id}`, { method: 'DELETE' })
+}
+
+/** Formato aceito pela API para criar/atualizar um valor de meta de vendedor. */
+export interface MetaVendedorEntrada {
+  vendedorId: string
+  metaId: string
+  valorMeta: number
+  valorRealizado: number
+}
+
+export function listarMetasVendedor(): Promise<MetaVendedor[]> {
+  return requisitar('/api/metas-vendedor')
+}
+
+export function criarMetaVendedor(mv: MetaVendedorEntrada): Promise<MetaVendedor> {
+  return requisitar('/api/metas-vendedor', { method: 'POST', body: JSON.stringify(mv) })
+}
+
+export function atualizarMetaVendedor(id: string, mv: MetaVendedorEntrada): Promise<MetaVendedor> {
+  return requisitar(`/api/metas-vendedor/${id}`, { method: 'PUT', body: JSON.stringify(mv) })
+}
+
+export function excluirMetaVendedor(id: string): Promise<void> {
+  return requisitar(`/api/metas-vendedor/${id}`, { method: 'DELETE' })
 }

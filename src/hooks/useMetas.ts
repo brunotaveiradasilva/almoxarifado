@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as api from '../lib/api'
 import { ErroApi } from '../lib/api'
-import type { MetaEntrada, VendedorEntrada } from '../lib/api'
+import type { MetaEntrada, MetaVendedorEntrada, VendedorEntrada } from '../lib/api'
 import { idTemporario } from '../lib/idTemporario'
-import type { Fornecedor, Meta, Vendedor } from '../types'
+import type { Fornecedor, Meta, MetaVendedor, Vendedor } from '../types'
 
 function mensagemErro(erro: unknown): string {
   return erro instanceof ErroApi ? erro.message : 'Algo deu errado. Tente de novo.'
@@ -18,6 +18,7 @@ export function useMetas() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
   const [vendedores, setVendedores] = useState<Vendedor[]>([])
   const [metas, setMetas] = useState<Meta[]>([])
+  const [metasVendedor, setMetasVendedor] = useState<MetaVendedor[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -25,14 +26,17 @@ export function useMetas() {
     setCarregando(true)
     setErro(null)
     try {
-      const [fornecedoresCarregados, vendedoresCarregados, metasCarregadas] = await Promise.all([
-        api.listarFornecedores(),
-        api.listarVendedores(),
-        api.listarMetas(),
-      ])
+      const [fornecedoresCarregados, vendedoresCarregados, metasCarregadas, metasVendedorCarregadas] =
+        await Promise.all([
+          api.listarFornecedores(),
+          api.listarVendedores(),
+          api.listarMetas(),
+          api.listarMetasVendedor(),
+        ])
       setFornecedores(fornecedoresCarregados)
       setVendedores(vendedoresCarregados)
       setMetas(metasCarregadas)
+      setMetasVendedor(metasVendedorCarregadas)
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
@@ -156,10 +160,43 @@ export function useMetas() {
     })
   }, [metas])
 
+  /** Cria (id null/undefined) ou atualiza (id preenchido) o valor de meta de um vendedor. */
+  const salvarMetaVendedor = useCallback(
+    (mv: MetaVendedorEntrada, id?: string | null): Promise<MetaVendedor> => {
+      setErro(null)
+
+      const promessa = id ? api.atualizarMetaVendedor(id, mv) : api.criarMetaVendedor(mv)
+      return promessa
+        .then((salva) => {
+          setMetasVendedor((atual) => {
+            const existe = atual.some((m) => m.id === salva.id)
+            return existe ? atual.map((m) => (m.id === salva.id ? salva : m)) : [...atual, salva]
+          })
+          return salva
+        })
+        .catch((e) => {
+          setErro(mensagemErro(e))
+          throw e
+        })
+    },
+    [],
+  )
+
+  const removerMetaVendedor = useCallback((id: string) => {
+    setErro(null)
+    const anterior = metasVendedor
+    setMetasVendedor((atual) => atual.filter((m) => m.id !== id))
+    api.excluirMetaVendedor(id).catch((e) => {
+      setErro(mensagemErro(e))
+      setMetasVendedor(anterior)
+    })
+  }, [metasVendedor])
+
   return {
     fornecedores,
     vendedores,
     metas,
+    metasVendedor,
     carregando,
     erro,
     tentarNovamente: carregarTudo,
@@ -169,5 +206,7 @@ export function useMetas() {
     removerVendedor,
     salvarMeta,
     removerMeta,
+    salvarMetaVendedor,
+    removerMetaVendedor,
   }
 }
