@@ -1,18 +1,16 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { MetaVendedorEntrada } from '../lib/api'
 import type { Meta, MetaVendedor, Vendedor } from '../types'
 
 interface Props {
   vendedores: Vendedor[]
   metas: Meta[]
   metasVendedor: MetaVendedor[]
-  aoSalvar: (mv: MetaVendedorEntrada, id?: string | null) => Promise<MetaVendedor>
 }
 
-/** Metas de todos os fornecedores para quem o vendedor escolhido trabalha — os valores dão pra editar direto aqui. */
-export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor, aoSalvar }: Props) {
+/** Só visualização: metas de todos os fornecedores para quem o vendedor escolhido trabalha. Editar é na tela "Metas por fornecedor". */
+export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor }: Props) {
   const [vendedorId, setVendedorId] = useState(vendedores[0]?.id ?? '')
   const vendedor = vendedores.find((v) => v.id === vendedorId) ?? null
 
@@ -60,15 +58,27 @@ export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor, aoS
             </tr>
           </thead>
           <tbody>
-            {metasDoVendedor.map((meta) => (
-              <LinhaMetaVendedor
-                key={`${vendedorId}:${meta.id}`}
-                vendedorId={vendedorId}
-                meta={meta}
-                atribuicao={metasVendedor.find((mv) => mv.vendedor.id === vendedorId && mv.meta.id === meta.id) ?? null}
-                aoSalvar={aoSalvar}
-              />
-            ))}
+            {metasDoVendedor.map((meta) => {
+              const atribuicao =
+                metasVendedor.find((mv) => mv.vendedor.id === vendedorId && mv.meta.id === meta.id) ?? null
+              const valorMeta = atribuicao?.valorMeta ?? 0
+              const valorRealizado = atribuicao?.valorRealizado ?? 0
+              const falta = valorMeta - valorRealizado
+              const percentual = valorMeta > 0 ? (valorRealizado / valorMeta) * 100 : null
+
+              return (
+                <tr key={meta.id}>
+                  <td className="cell-material">{meta.nome}</td>
+                  <td>{ROTULO_UNIDADE_META[meta.unidade]}</td>
+                  <td className="num">{atribuicao ? valorMeta.toLocaleString('pt-BR') : '—'}</td>
+                  <td className="num">{atribuicao ? valorRealizado.toLocaleString('pt-BR') : '—'}</td>
+                  <td className="num">{atribuicao ? falta.toLocaleString('pt-BR') : '—'}</td>
+                  <td className="num">
+                    {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
 
@@ -80,75 +90,5 @@ export function ConsultaMetasPorVendedor({ vendedores, metas, metasVendedor, aoS
         ) : null}
       </div>
     </div>
-  )
-}
-
-interface LinhaProps {
-  vendedorId: string
-  meta: Meta
-  atribuicao: MetaVendedor | null
-  aoSalvar: (mv: MetaVendedorEntrada, id?: string | null) => Promise<MetaVendedor>
-}
-
-function LinhaMetaVendedor({ vendedorId, meta, atribuicao, aoSalvar }: LinhaProps) {
-  const [id, setId] = useState(atribuicao?.id ?? null)
-  const [valorMeta, setValorMeta] = useState(atribuicao ? String(atribuicao.valorMeta) : '')
-  const [valorRealizado, setValorRealizado] = useState(atribuicao ? String(atribuicao.valorRealizado) : '')
-  const [salvo, setSalvo] = useState({ meta: atribuicao?.valorMeta ?? 0, realizado: atribuicao?.valorRealizado ?? 0 })
-  const [salvando, setSalvando] = useState(false)
-  const [erro, setErro] = useState('')
-
-  const metaNum = Number.parseFloat(valorMeta) || 0
-  const realizadoNum = Number.parseFloat(valorRealizado) || 0
-  const falta = metaNum - realizadoNum
-  const percentual = metaNum > 0 ? (realizadoNum / metaNum) * 100 : null
-
-  async function salvarSeMudou() {
-    if (metaNum === salvo.meta && realizadoNum === salvo.realizado) return
-
-    setSalvando(true)
-    setErro('')
-    try {
-      const salva = await aoSalvar({ vendedorId, metaId: meta.id, valorMeta: metaNum, valorRealizado: realizadoNum }, id)
-      setId(salva.id)
-      setSalvo({ meta: salva.valorMeta, realizado: salva.valorRealizado })
-    } catch {
-      setErro('Não salvou — tenta de novo.')
-    } finally {
-      setSalvando(false)
-    }
-  }
-
-  return (
-    <tr>
-      <td className="cell-material">{meta.nome}</td>
-      <td>{ROTULO_UNIDADE_META[meta.unidade]}</td>
-      <td className="num">
-        <input
-          className="input-tabela"
-          type="number"
-          min={0}
-          step="any"
-          value={valorMeta}
-          onChange={(e) => setValorMeta(e.target.value)}
-          onBlur={salvarSeMudou}
-        />
-      </td>
-      <td className="num">
-        <input
-          className="input-tabela"
-          type="number"
-          min={0}
-          step="any"
-          value={valorRealizado}
-          onChange={(e) => setValorRealizado(e.target.value)}
-          onBlur={salvarSeMudou}
-        />
-        {salvando ? <span className="hint"> salvando…</span> : null}
-        {erro ? <span className="hint warn"> {erro}</span> : null}
-      </td>
-      <td className="num">{falta.toLocaleString('pt-BR')}</td>
-      <td className="num">{percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`}</td>
-    </tr>
   )
 }

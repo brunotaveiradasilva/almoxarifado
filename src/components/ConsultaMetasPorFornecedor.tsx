@@ -1,16 +1,20 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
+import { LinhaMetaVendedor } from './LinhaMetaVendedor'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { Fornecedor, Meta, Vendedor } from '../types'
+import type { MetaVendedorEntrada } from '../lib/api'
+import type { Fornecedor, Meta, MetaVendedor, Vendedor } from '../types'
 
 interface Props {
   fornecedores: Fornecedor[]
   vendedores: Vendedor[]
   metas: Meta[]
+  metasVendedor: MetaVendedor[]
+  aoSalvar: (mv: MetaVendedorEntrada, id?: string | null) => Promise<MetaVendedor>
 }
 
-/** Só visualização: metas e vendedores de um fornecedor escolhido. */
-export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas }: Props) {
+/** Metas e vendedores de um fornecedor escolhido — o valor de meta de cada vendedor dá pra editar direto aqui. */
+export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas, metasVendedor, aoSalvar }: Props) {
   const [fornecedorId, setFornecedorId] = useState(fornecedores[0]?.id ?? '')
 
   const metasDoFornecedor = useMemo(
@@ -67,30 +71,52 @@ export function ConsultaMetasPorFornecedor({ fornecedores, vendedores, metas }: 
       </div>
 
       <h3 className="consulta-subtitulo">Vendedores</h3>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Vendedor</th>
-              <th>E-mail</th>
-              <th>Celular</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vendedoresDoFornecedor.map((v) => (
-              <tr key={v.id}>
-                <td className="cell-material">{v.nome}</td>
-                <td>{v.email || '—'}</td>
-                <td>{v.celular || '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
 
-        {!vendedoresDoFornecedor.length ? (
-          <EstadoVazio titulo="Nenhum vendedor pra esse fornecedor" texto="Nenhum vendedor trabalha pra esse fornecedor ainda." />
-        ) : null}
-      </div>
+      {!vendedoresDoFornecedor.length ? (
+        <div className="table-wrap">
+          <EstadoVazio
+            titulo="Nenhum vendedor pra esse fornecedor"
+            texto="Nenhum vendedor trabalha pra esse fornecedor ainda."
+          />
+        </div>
+      ) : !metasDoFornecedor.length ? (
+        <p className="hint">Cadastre uma meta pra esse fornecedor pra poder atribuir valores aos vendedores.</p>
+      ) : (
+        vendedoresDoFornecedor.map((v) => (
+          <div key={v.id} className="bloco-vendedor">
+            <p className="consulta-info">
+              <strong>{v.nome}</strong>
+              {v.email ? ` · ${v.email}` : ''}
+              {v.celular ? ` · ${v.celular}` : ''}
+            </p>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Meta</th>
+                    <th>Unidade</th>
+                    <th className="num">Meta</th>
+                    <th className="num">Realizado</th>
+                    <th className="num">Falta</th>
+                    <th className="num">Realizado %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metasDoFornecedor.map((meta) => (
+                    <LinhaMetaVendedor
+                      key={`${v.id}:${meta.id}`}
+                      vendedorId={v.id}
+                      meta={meta}
+                      atribuicao={metasVendedor.find((mv) => mv.vendedor.id === v.id && mv.meta.id === meta.id) ?? null}
+                      aoSalvar={aoSalvar}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   )
 }
