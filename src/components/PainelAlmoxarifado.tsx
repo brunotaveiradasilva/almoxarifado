@@ -10,7 +10,7 @@ import { FormularioMaterial } from './FormularioMaterial'
 import { FormularioTrocarSenha } from './FormularioTrocarSenha'
 import { PainelUsuarios } from './PainelUsuarios'
 import { PainelMetas } from './PainelMetas'
-import { MenuUsuario } from './MenuUsuario'
+import { MenuLateral, type AbaPrincipal } from './MenuLateral'
 import type { Agendamento, Filtro, Material } from '../types'
 
 interface Props {
@@ -29,11 +29,14 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
   { valor: 'devolvido', rotulo: 'Devolvidos' },
 ]
 
+type SubabaMateriais = 'retiradas' | 'cadastro'
+
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
 export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarFoto }: Props) {
   const app = useAlmoxarifado()
 
-  const [aba, setAba] = useState<'agenda' | 'materiais' | 'metas'>('agenda')
+  const [aba, setAba] = useState<AbaPrincipal>('materiais')
+  const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('retiradas')
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [buscaAgenda, setBuscaAgenda] = useState('')
   const [buscaMaterial, setBuscaMaterial] = useState('')
@@ -74,6 +77,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
   function abrirAgendamento(agendamento: Agendamento | null, materialInicial?: string) {
     if (!app.materiais.length) {
       setAba('materiais')
+      setSubabaMateriais('cadastro')
       setDialogoMaterial({ aberto: true, material: null })
       return
     }
@@ -88,37 +92,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
   }
 
   return (
-    <>
-      <header className="topbar">
-        <div className="brand">
-          <h1>SulBiologic</h1>
-        </div>
-        <nav className="tabs" role="tablist">
-          <button role="tab" aria-selected={aba === 'agenda'} onClick={() => setAba('agenda')}>
-            Agendamentos
-          </button>
-          <button role="tab" aria-selected={aba === 'materiais'} onClick={() => setAba('materiais')}>
-            Materiais
-          </button>
-          {isAdmin ? (
-            <button role="tab" aria-selected={aba === 'metas'} onClick={() => setAba('metas')}>
-              Metas
-            </button>
-          ) : null}
-        </nav>
-        <div className="session">
-          <MenuUsuario
-            usuario={usuario}
-            avatar={avatar}
-            isAdmin={isAdmin}
-            aoAbrirUsuarios={() => setDialogoUsuarios(true)}
-            aoAbrirTrocarSenha={() => setDialogoSenha(true)}
-            aoSair={aoSair}
-            aoTrocarFoto={aoTrocarFoto}
-          />
-        </div>
-      </header>
-
+    <div className="app-shell">
       <main>
         {app.erro ? (
           <div className="banner-erro" role="alert">
@@ -131,162 +105,189 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
 
         {primeiraCarga ? (
           <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
-        ) : aba === 'agenda' ? (
-          <section className="view" role="tabpanel">
-            <div className="view-head">
-              <div>
-                <h2>Agendamentos</h2>
-                <p>
-                  Quem levou o quê, quando leva e quando devolve. Itens com devolução vencida sobem marcados
-                  como atrasados.
-                </p>
-              </div>
-              <button className="btn btn-primary" onClick={() => abrirAgendamento(null)}>
-                + Novo agendamento
-              </button>
-            </div>
-
-            <PainelResumo resumo={resumo} />
-
-            <div className="toolbar">
-              <input
-                className="search"
-                type="search"
-                placeholder="Buscar por material, responsável, cliente ou observação…"
-                aria-label="Buscar agendamentos"
-                value={buscaAgenda}
-                onChange={(e) => setBuscaAgenda(e.target.value)}
-              />
-              <div className="filters">
-                {FILTROS.map((f) => (
-                  <button key={f.valor} aria-pressed={filtro === f.valor} onClick={() => setFiltro(f.valor)}>
-                    {f.rotulo}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th className="num">Qtd.</th>
-                    <th>Responsável</th>
-                    <th>Cliente</th>
-                    <th>Retirada</th>
-                    <th>Devolução</th>
-                    <th>Status</th>
-                    <th>Observação</th>
-                    <th />
-                  </tr>
-                </thead>
-                <TabelaAgendamentos
-                  agendamentos={agendamentosVisiveis}
-                  materiais={app.materiais}
-                  aoMudarStatus={app.definirStatus}
-                  aoEditar={(a) => abrirAgendamento(a)}
-                  aoExcluir={app.removerAgendamento}
-                />
-              </table>
-
-              {!agendamentosVisiveis.length && app.agendamentos.length ? (
-                <EstadoVazio titulo="Nada aqui com esses filtros" texto="Ajuste a busca ou volte para “Todos”." />
-              ) : null}
-
-              {!app.agendamentos.length ? (
-                <EstadoVazio
-                  titulo={app.materiais.length ? 'Nenhum agendamento ainda' : 'Comece pelo cadastro de materiais'}
-                  texto={
-                    app.materiais.length
-                      ? 'Registre a primeira retirada: material, quantidade, responsável e as duas datas.'
-                      : 'Cadastre os materiais que podem ser retirados e depois agende as retiradas.'
-                  }
-                >
-                  <button className="btn btn-primary" onClick={() => abrirAgendamento(null)}>
-                    {app.materiais.length ? '+ Novo agendamento' : '+ Cadastrar material'}
-                  </button>
-                  <button className="btn" onClick={app.carregarExemplos}>
-                    Carregar dados de exemplo
-                  </button>
-                </EstadoVazio>
-              ) : null}
-            </div>
-          </section>
         ) : aba === 'metas' ? (
           <PainelMetas />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">
               <div>
-                <h2>Cadastro de materiais</h2>
+                <h2>Materiais</h2>
                 <p>
-                  Cadastre aqui tudo que pode ser retirado. A quantidade em estoque é usada para avisar quando
-                  um agendamento passa do que existe.
+                  Quem levou o quê e o que existe no estoque para retirar. Itens com devolução vencida sobem
+                  marcados como atrasados.
                 </p>
               </div>
-              <button className="btn btn-primary" onClick={() => setDialogoMaterial({ aberto: true, material: null })}>
-                + Cadastrar material
-              </button>
-            </div>
-
-            <div className="toolbar">
-              <input
-                className="search"
-                type="search"
-                placeholder="Buscar material por nome ou código…"
-                aria-label="Buscar materiais"
-                value={buscaMaterial}
-                onChange={(e) => setBuscaMaterial(e.target.value)}
-              />
-            </div>
-
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th className="num">Estoque</th>
-                    <th className="num">Em posse / reservado</th>
-                    <th>Observação</th>
-                    <th />
-                  </tr>
-                </thead>
-                <TabelaMateriais
-                  materiais={materiaisVisiveis}
-                  agendamentos={app.agendamentos}
-                  aoAgendar={(materialId) => abrirAgendamento(null, materialId)}
-                  aoEditar={(material) => setDialogoMaterial({ aberto: true, material })}
-                  aoExcluir={excluirMaterial}
-                />
-              </table>
-
-              {!materiaisVisiveis.length && app.materiais.length ? (
-                <EstadoVazio titulo="Nenhum material com esse termo" texto="Tente outro nome ou código." />
-              ) : null}
-
-              {!app.materiais.length ? (
-                <EstadoVazio
-                  titulo="Nenhum material cadastrado"
-                  texto="Cadastre os itens do almoxarifado — nome, código e quantidade em estoque. Depois eles aparecem na hora de agendar."
+              {subabaMateriais === 'retiradas' ? (
+                <button className="btn btn-primary" onClick={() => abrirAgendamento(null)}>
+                  + Novo agendamento
+                </button>
+              ) : (
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setDialogoMaterial({ aberto: true, material: null })}
                 >
-                  <button className="btn btn-primary" onClick={() => setDialogoMaterial({ aberto: true, material: null })}>
-                    + Cadastrar material
-                  </button>
-                  <button className="btn" onClick={app.carregarExemplos}>
-                    Carregar dados de exemplo
-                  </button>
-                </EstadoVazio>
-              ) : null}
+                  + Cadastrar material
+                </button>
+              )}
             </div>
+
+            <nav className="tabs" role="tablist">
+              <button role="tab" aria-selected={subabaMateriais === 'retiradas'} onClick={() => setSubabaMateriais('retiradas')}>
+                Retiradas
+              </button>
+              <button role="tab" aria-selected={subabaMateriais === 'cadastro'} onClick={() => setSubabaMateriais('cadastro')}>
+                Cadastro
+              </button>
+            </nav>
+
+            {subabaMateriais === 'retiradas' ? (
+              <>
+                <PainelResumo resumo={resumo} />
+
+                <div className="toolbar">
+                  <input
+                    className="search"
+                    type="search"
+                    placeholder="Buscar por material, responsável, cliente ou observação…"
+                    aria-label="Buscar agendamentos"
+                    value={buscaAgenda}
+                    onChange={(e) => setBuscaAgenda(e.target.value)}
+                  />
+                  <div className="filters">
+                    {FILTROS.map((f) => (
+                      <button key={f.valor} aria-pressed={filtro === f.valor} onClick={() => setFiltro(f.valor)}>
+                        {f.rotulo}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Material</th>
+                        <th className="num">Qtd.</th>
+                        <th>Responsável</th>
+                        <th>Cliente</th>
+                        <th>Retirada</th>
+                        <th>Devolução</th>
+                        <th>Status</th>
+                        <th>Observação</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <TabelaAgendamentos
+                      agendamentos={agendamentosVisiveis}
+                      materiais={app.materiais}
+                      aoMudarStatus={app.definirStatus}
+                      aoEditar={(a) => abrirAgendamento(a)}
+                      aoExcluir={app.removerAgendamento}
+                    />
+                  </table>
+
+                  {!agendamentosVisiveis.length && app.agendamentos.length ? (
+                    <EstadoVazio titulo="Nada aqui com esses filtros" texto="Ajuste a busca ou volte para “Todos”." />
+                  ) : null}
+
+                  {!app.agendamentos.length ? (
+                    <EstadoVazio
+                      titulo={app.materiais.length ? 'Nenhum agendamento ainda' : 'Comece pelo cadastro de materiais'}
+                      texto={
+                        app.materiais.length
+                          ? 'Registre a primeira retirada: material, quantidade, responsável e as duas datas.'
+                          : 'Cadastre os materiais que podem ser retirados e depois agende as retiradas.'
+                      }
+                    >
+                      <button className="btn btn-primary" onClick={() => abrirAgendamento(null)}>
+                        {app.materiais.length ? '+ Novo agendamento' : '+ Cadastrar material'}
+                      </button>
+                      <button className="btn" onClick={app.carregarExemplos}>
+                        Carregar dados de exemplo
+                      </button>
+                    </EstadoVazio>
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="toolbar">
+                  <input
+                    className="search"
+                    type="search"
+                    placeholder="Buscar material por nome ou código…"
+                    aria-label="Buscar materiais"
+                    value={buscaMaterial}
+                    onChange={(e) => setBuscaMaterial(e.target.value)}
+                  />
+                </div>
+
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Material</th>
+                        <th className="num">Estoque</th>
+                        <th className="num">Em posse / reservado</th>
+                        <th>Observação</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <TabelaMateriais
+                      materiais={materiaisVisiveis}
+                      agendamentos={app.agendamentos}
+                      aoAgendar={(materialId) => {
+                        setSubabaMateriais('retiradas')
+                        abrirAgendamento(null, materialId)
+                      }}
+                      aoEditar={(material) => setDialogoMaterial({ aberto: true, material })}
+                      aoExcluir={excluirMaterial}
+                    />
+                  </table>
+
+                  {!materiaisVisiveis.length && app.materiais.length ? (
+                    <EstadoVazio titulo="Nenhum material com esse termo" texto="Tente outro nome ou código." />
+                  ) : null}
+
+                  {!app.materiais.length ? (
+                    <EstadoVazio
+                      titulo="Nenhum material cadastrado"
+                      texto="Cadastre os itens do almoxarifado — nome, código e quantidade em estoque. Depois eles aparecem na hora de agendar."
+                    >
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => setDialogoMaterial({ aberto: true, material: null })}
+                      >
+                        + Cadastrar material
+                      </button>
+                      <button className="btn" onClick={app.carregarExemplos}>
+                        Carregar dados de exemplo
+                      </button>
+                    </EstadoVazio>
+                  ) : null}
+                </div>
+              </>
+            )}
           </section>
         )}
+
+        <footer className="foot">
+          {app.materiais.length} material(is) cadastrado(s) · {app.agendamentos.length} agendamento(s). Os dados
+          ficam no servidor — acessíveis de qualquer computador.
+        </footer>
       </main>
 
-      <footer className="foot">
-        {app.materiais.length} material(is) cadastrado(s) · {app.agendamentos.length} agendamento(s). Os dados
-        ficam no servidor — acessíveis de qualquer computador.
-      </footer>
+      <MenuLateral
+        aba={aba}
+        isAdmin={isAdmin}
+        usuario={usuario}
+        avatar={avatar}
+        aoMudarAba={setAba}
+        aoAbrirUsuarios={() => setDialogoUsuarios(true)}
+        aoAbrirTrocarSenha={() => setDialogoSenha(true)}
+        aoSair={aoSair}
+        aoTrocarFoto={aoTrocarFoto}
+      />
 
       {dialogoAgendamento.aberto ? (
         <FormularioAgendamento
@@ -312,6 +313,6 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
       {dialogoUsuarios ? (
         <PainelUsuarios usuarioAtual={usuario} aoFechar={() => setDialogoUsuarios(false)} />
       ) : null}
-    </>
+    </div>
   )
 }
