@@ -101,84 +101,108 @@ export function PainelMetas() {
       {primeiraCarga ? (
         <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
       ) : subaba === 'fornecedores' ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Fornecedor</th>
-                <th />
-              </tr>
-            </thead>
-            <TabelaFornecedores
-              fornecedores={metas.fornecedores}
-              aoEditar={(fornecedor) => setDialogoFornecedor({ aberto: true, fornecedor })}
-              aoExcluir={excluirFornecedor}
-            />
-          </table>
+        <div className="meta-card">
+          <div className="meta-card-head">
+            <h3>Fornecedores</h3>
+            <span className="meta-badge">{metas.fornecedores.length} cadastrado(s)</span>
+          </div>
+          <div className="table-scroll">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fornecedor</th>
+                    <th />
+                  </tr>
+                </thead>
+                <TabelaFornecedores
+                  fornecedores={metas.fornecedores}
+                  aoEditar={(fornecedor) => setDialogoFornecedor({ aberto: true, fornecedor })}
+                  aoExcluir={excluirFornecedor}
+                />
+              </table>
 
-          {!metas.fornecedores.length ? (
-            <EstadoVazio titulo="Nenhum fornecedor cadastrado" texto="Cadastre os fornecedores donos das metas.">
-              <button
-                className="btn btn-primary"
-                onClick={() => setDialogoFornecedor({ aberto: true, fornecedor: null })}
-              >
-                + Cadastrar fornecedor
-              </button>
-            </EstadoVazio>
-          ) : null}
+              {!metas.fornecedores.length ? (
+                <EstadoVazio titulo="Nenhum fornecedor cadastrado" texto="Cadastre os fornecedores donos das metas.">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setDialogoFornecedor({ aberto: true, fornecedor: null })}
+                  >
+                    + Cadastrar fornecedor
+                  </button>
+                </EstadoVazio>
+              ) : null}
+            </div>
+          </div>
         </div>
       ) : subaba === 'representantes' ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Representante</th>
-                <th>Fornecedores</th>
-                <th>E-mail</th>
-                <th>Celular</th>
-                <th />
-              </tr>
-            </thead>
-            <TabelaRepresentantes
-              representantes={metas.representantes}
-              aoEditar={(representante) => setDialogoRepresentante({ aberto: true, representante })}
-              aoExcluir={excluirRepresentante}
-            />
-          </table>
+        <div className="meta-card">
+          <div className="meta-card-head">
+            <h3>Representantes</h3>
+            <span className="meta-badge">{metas.representantes.length} cadastrado(s)</span>
+          </div>
+          <div className="table-scroll">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Representante</th>
+                    <th>Fornecedores</th>
+                    <th>E-mail</th>
+                    <th>Celular</th>
+                    <th />
+                  </tr>
+                </thead>
+                <TabelaRepresentantes
+                  representantes={metas.representantes}
+                  aoEditar={(representante) => setDialogoRepresentante({ aberto: true, representante })}
+                  aoExcluir={excluirRepresentante}
+                />
+              </table>
 
-          {!metas.representantes.length ? (
-            <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre os representantes que terão metas atribuídas.">
-              <button className="btn btn-primary" onClick={() => setDialogoRepresentante({ aberto: true, representante: null })}>
-                + Cadastrar representante
-              </button>
-            </EstadoVazio>
-          ) : null}
+              {!metas.representantes.length ? (
+                <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre os representantes que terão metas atribuídas.">
+                  <button className="btn btn-primary" onClick={() => setDialogoRepresentante({ aberto: true, representante: null })}>
+                    + Cadastrar representante
+                  </button>
+                </EstadoVazio>
+              ) : null}
+            </div>
+          </div>
         </div>
       ) : subaba === 'metas' ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Meta</th>
-                <th>Fornecedor</th>
-                <th>Unidade</th>
-                <th />
-              </tr>
-            </thead>
-            <TabelaMetas
-              metas={metas.metas}
-              aoEditar={(meta) => setDialogoMeta({ aberto: true, meta })}
-              aoExcluir={excluirMeta}
-            />
-          </table>
+        <div className="meta-card">
+          <div className="meta-card-head">
+            <h3>Metas cadastradas</h3>
+            <span className="meta-badge">{metas.metas.length} meta(s)</span>
+          </div>
+          <div className="table-scroll">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Meta</th>
+                    <th>Fornecedor</th>
+                    <th>Unidade</th>
+                    <th />
+                  </tr>
+                </thead>
+                <TabelaMetas
+                  metas={metas.metas}
+                  aoEditar={(meta) => setDialogoMeta({ aberto: true, meta })}
+                  aoExcluir={excluirMeta}
+                />
+              </table>
 
-          {!metas.metas.length ? (
-            <EstadoVazio titulo="Nenhuma meta cadastrada" texto="Cadastre as metas de cada fornecedor.">
-              <button className="btn btn-primary" onClick={() => setDialogoMeta({ aberto: true, meta: null })}>
-                + Cadastrar meta
-              </button>
-            </EstadoVazio>
-          ) : null}
+              {!metas.metas.length ? (
+                <EstadoVazio titulo="Nenhuma meta cadastrada" texto="Cadastre as metas de cada fornecedor.">
+                  <button className="btn btn-primary" onClick={() => setDialogoMeta({ aberto: true, meta: null })}>
+                    + Cadastrar meta
+                  </button>
+                </EstadoVazio>
+              ) : null}
+            </div>
+          </div>
         </div>
       ) : subaba === 'porRepresentante' ? (
         <ConsultaMetasPorRepresentante representantes={metas.representantes} metas={metas.metas} metasRepresentante={metas.metasRepresentante} />
