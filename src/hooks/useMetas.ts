@@ -192,6 +192,27 @@ export function useMetas() {
     })
   }, [metasRepresentante])
 
+  const [sincronizando, setSincronizando] = useState(false)
+
+  /**
+   * Força agora o recálculo do realizado a partir do histórico de vendas da ADS. A API só devolve
+   * as atribuições que realmente têm representante e meta com código ADS cadastrado — as outras
+   * continuam como estavam, só mescla as que vieram atualizadas.
+   */
+  const sincronizarComAds = useCallback(async () => {
+    setErro(null)
+    setSincronizando(true)
+    try {
+      const atualizadas = await api.sincronizarMetasRepresentante()
+      const porId = new Map(atualizadas.map((m) => [m.id, m]))
+      setMetasRepresentante((atual) => atual.map((m) => porId.get(m.id) ?? m))
+    } catch (e) {
+      setErro(mensagemErro(e))
+    } finally {
+      setSincronizando(false)
+    }
+  }, [])
+
   return {
     fornecedores,
     representantes,
@@ -208,5 +229,7 @@ export function useMetas() {
     removerMeta,
     salvarMetaRepresentante,
     removerMetaRepresentante,
+    sincronizarComAds,
+    sincronizando,
   }
 }

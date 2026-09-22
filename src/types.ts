@@ -43,6 +43,8 @@ export interface Representante {
   fornecedores: Fornecedor[]
   email: string
   celular: string
+  /** Código desse representante na API da ADS (histórico de vendas) — vazio se ele não é sincronizado automaticamente. */
+  codigoAds: string
 }
 
 /** Como uma meta é medida. */
@@ -54,6 +56,8 @@ export interface Meta {
   /** Uma meta pertence a um único fornecedor. */
   fornecedor: Fornecedor
   unidade: UnidadeMeta
+  /** Código da divisão correspondente na API da ADS (histórico de vendas) — vazio se essa meta não é sincronizada automaticamente. */
+  codigoAdsDivisao: string
 }
 
 /** O valor de uma meta atribuído a um representante específico: quanto ele precisa bater e quanto já bateu. */

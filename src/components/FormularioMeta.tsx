@@ -16,6 +16,7 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
   const [nome, setNome] = useState(meta?.nome ?? '')
   const [fornecedorId, setFornecedorId] = useState(meta?.fornecedor.id ?? fornecedores[0]?.id ?? '')
   const [unidade, setUnidade] = useState<UnidadeMeta>(meta?.unidade ?? 'KG')
+  const [codigoAdsDivisao, setCodigoAdsDivisao] = useState(meta?.codigoAdsDivisao ?? '')
   const [erro, setErro] = useState('')
 
   function confirmar() {
@@ -23,7 +24,7 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
     if (!nomeLimpo) return setErro('Informe o nome da meta.')
     if (!fornecedorId) return setErro('Selecione o fornecedor.')
 
-    aoSalvar({ nome: nomeLimpo, fornecedorId, unidade }, meta?.id)
+    aoSalvar({ nome: nomeLimpo, fornecedorId, unidade, codigoAdsDivisao: codigoAdsDivisao.trim() }, meta?.id)
     aoFechar()
   }
 
@@ -70,6 +71,21 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="field">
+        <label htmlFor="me-codigo-ads">Código da divisão ADS</label>
+        <input
+          id="me-codigo-ads"
+          maxLength={20}
+          placeholder="Ex.: 074"
+          value={codigoAdsDivisao}
+          onChange={(e) => setCodigoAdsDivisao(e.target.value)}
+        />
+        <p className="hint">
+          Código da divisão correspondente na API da ADS (histórico de vendas). Deixe em branco se essa meta não
+          deve ser sincronizada automaticamente.
+        </p>
       </div>
     </Modal>
   )

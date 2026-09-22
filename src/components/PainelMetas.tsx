@@ -78,6 +78,11 @@ export function PainelMetas() {
             + Cadastrar meta
           </button>
         ) : null}
+        {subaba === 'porRepresentante' || subaba === 'porFornecedor' ? (
+          <button className="btn" disabled={metas.sincronizando} onClick={metas.sincronizarComAds}>
+            {metas.sincronizando ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+          </button>
+        ) : null}
       </div>
 
       {metas.erro ? (

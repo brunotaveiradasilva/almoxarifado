@@ -159,6 +159,7 @@ export interface RepresentanteEntrada {
   fornecedorIds: string[]
   email: string
   celular: string
+  codigoAds: string
 }
 
 export function listarRepresentantes(): Promise<Representante[]> {
@@ -186,6 +187,7 @@ export interface MetaEntrada {
   nome: string
   fornecedorId: string
   unidade: UnidadeMeta
+  codigoAdsDivisao: string
 }
 
 export function listarMetas(): Promise<Meta[]> {
@@ -219,6 +221,12 @@ export interface MetaRepresentanteEntrada {
 export function listarMetasRepresentante(): Promise<MetaRepresentante[]> {
   if (MOCK) return mock.listarMetasRepresentante()
   return requisitar('/api/metas-representante')
+}
+
+/** Força agora o recálculo do realizado a partir do histórico de vendas da ADS (o mesmo que roda sozinho todo dia). */
+export function sincronizarMetasRepresentante(): Promise<MetaRepresentante[]> {
+  if (MOCK) return mock.sincronizarMetasRepresentante()
+  return requisitar('/api/metas-representante/sincronizar', { method: 'POST' })
 }
 
 export function criarMetaRepresentante(mv: MetaRepresentanteEntrada): Promise<MetaRepresentante> {

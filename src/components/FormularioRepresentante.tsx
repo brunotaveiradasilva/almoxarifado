@@ -18,6 +18,7 @@ export function FormularioRepresentante({ representante, fornecedores, aoFechar,
   )
   const [email, setEmail] = useState(representante?.email ?? '')
   const [celular, setCelular] = useState(representante?.celular ?? '')
+  const [codigoAds, setCodigoAds] = useState(representante?.codigoAds ?? '')
   const [erro, setErro] = useState('')
 
   function alternarFornecedor(id: string, marcado: boolean) {
@@ -29,7 +30,10 @@ export function FormularioRepresentante({ representante, fornecedores, aoFechar,
     if (!nomeLimpo) return setErro('Informe o nome do representante.')
     if (!fornecedorIds.length) return setErro('Selecione ao menos um fornecedor.')
 
-    aoSalvar({ nome: nomeLimpo, fornecedorIds, email: email.trim(), celular: celular.trim() }, representante?.id)
+    aoSalvar(
+      { nome: nomeLimpo, fornecedorIds, email: email.trim(), celular: celular.trim(), codigoAds: codigoAds.trim() },
+      representante?.id,
+    )
     aoFechar()
   }
 
@@ -94,6 +98,21 @@ export function FormularioRepresentante({ representante, fornecedores, aoFechar,
           value={celular}
           onChange={(e) => setCelular(e.target.value)}
         />
+      </div>
+
+      <div className="field">
+        <label htmlFor="v-codigo-ads">Código ADS</label>
+        <input
+          id="v-codigo-ads"
+          maxLength={20}
+          placeholder="Ex.: 073"
+          value={codigoAds}
+          onChange={(e) => setCodigoAds(e.target.value)}
+        />
+        <p className="hint">
+          Código desse representante na API da ADS (histórico de vendas). Deixe em branco se ele não deve ser
+          sincronizado automaticamente.
+        </p>
       </div>
     </Modal>
   )
