@@ -92,47 +92,49 @@
 
   :focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; border-radius: 6px; }
 
-  /* ---------- top bar ---------- */
-  .topbar {
-    position: sticky; top: 0; z-index: 20;
+  /* ---------- shell + menu lateral ---------- */
+  .app-shell { display: flex; align-items: stretch; min-height: 100vh; }
+  .app-shell > main { flex: 1; min-width: 0; }
+
+  .menu-lateral {
+    flex-shrink: 0; width: 228px;
+    position: sticky; top: 0; height: 100vh;
     background: color-mix(in srgb, var(--ground) 78%, transparent);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid var(--divider);
-    display: flex; align-items: center; gap: 28px;
-    padding: 0 22px;
-    flex-wrap: wrap;
+    border-right: 1px solid var(--divider);
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 22px 14px;
+    order: -1;
   }
-  .brand { display: flex; align-items: baseline; gap: 9px; padding: 13px 0; margin-right: auto; }
-  .brand h1 { font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
-  .brand .sub { font-size: 13px; color: var(--ink-3); font-weight: 400; }
-  nav.tabs { display: flex; gap: 4px; align-self: stretch; }
-  nav.tabs button {
-    background: none; border: 0; cursor: pointer;
-    padding: 0 12px; align-self: stretch;
-    font-size: 14px; font-weight: 400; letter-spacing: -.01em;
-    color: var(--ink-2);
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    transition: color .18s ease;
+  .menu-lateral-marca { padding: 0 10px 18px; font-size: 15px; font-weight: 600; letter-spacing: -.02em; text-align: center; }
+  .menu-lateral-nav { display: flex; flex-direction: column; gap: 2px; }
+  .menu-lateral-item {
+    display: flex; align-items: center; gap: 12px;
+    background: none; border: 0; cursor: pointer; text-align: left;
+    padding: 10px 10px; border-radius: var(--radius);
+    font-size: 14.5px; font-weight: 400; letter-spacing: -.01em; color: var(--ink-2);
+    transition: background .18s ease, color .18s ease;
   }
-  nav.tabs button:hover { color: var(--ink); }
-  nav.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--accent); }
+  .menu-lateral-item:hover { background: var(--surface-2); color: var(--ink); }
+  .menu-lateral-item.is-ativo { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .menu-lateral-item svg { flex-shrink: 0; }
 
-  .session { display: flex; align-items: center; gap: 10px; }
-
-  .menu-usuario { position: relative; }
-  .avatar-btn {
-    width: 32px; height: 32px; border-radius: 50%; padding: 0; overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2);
-    font-size: 13px; font-weight: 600; cursor: pointer;
+  .menu-lateral-conta { margin-top: auto; position: relative; }
+  .menu-lateral-rodape {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    background: none; border: 0; cursor: pointer; text-align: left;
+    padding: 10px; border-radius: var(--radius); color: var(--ink);
+    transition: background .18s ease;
   }
-  .avatar-btn:hover { border-color: var(--line-strong); }
-  .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+  .menu-lateral-rodape:hover, .menu-lateral-rodape.is-ativo { background: var(--surface-2); }
+  .menu-lateral-usuario {
+    font-size: 13.5px; font-weight: 500; letter-spacing: -.01em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
 
   .menu-dropdown {
-    position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; min-width: 200px;
+    position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 30; min-width: 200px;
     background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius);
     box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .35); padding: 6px;
     display: flex; flex-direction: column;
@@ -149,6 +151,36 @@
   }
   .menu-dropdown button[role="menuitem"]:hover { background: var(--surface-2); }
   .menu-dropdown-sair { color: var(--st-atrasado); }
+
+  nav.tabs { display: flex; gap: 4px; align-self: stretch; margin-bottom: 22px; border-bottom: 1px solid var(--divider); }
+  nav.tabs button {
+    background: none; border: 0; cursor: pointer;
+    padding: 0 12px 12px; align-self: stretch;
+    font-size: 14px; font-weight: 400; letter-spacing: -.01em;
+    color: var(--ink-2);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color .18s ease;
+  }
+  nav.tabs button:hover { color: var(--ink); }
+  nav.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--accent); }
+
+  .avatar-btn {
+    width: 32px; height: 32px; border-radius: 50%; padding: 0; overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .avatar-btn:hover { border-color: var(--line-strong); }
+  .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+  @media (max-width: 760px) {
+    .menu-lateral { width: 76px; padding: 18px 10px; align-items: center; }
+    .menu-lateral-marca { display: none; }
+    .menu-lateral-item span:not(:first-child) { display: none; }
+    .menu-lateral-item { justify-content: center; padding: 10px; }
+    .menu-lateral-usuario { display: none; }
+  }
 
   /* ---------- login ---------- */
   .login-page {
