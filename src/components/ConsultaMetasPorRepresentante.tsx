@@ -9,7 +9,7 @@ interface Props {
   metasRepresentante: MetaRepresentante[]
 }
 
-/** Só visualização: metas de todos os fornecedores para quem o representante escolhido trabalha. Editar é na tela "Metas por fornecedor". */
+/** Só visualização: metas de todos os fornecedores para quem o representante escolhido trabalha. Editar é na tela "Meta Fornecedor". */
 export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepresentante }: Props) {
   const [representanteId, setRepresentanteId] = useState(representantes[0]?.id ?? '')
   const representante = representantes.find((v) => v.id === representanteId) ?? null
@@ -34,7 +34,9 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
   const progressoMedio = comMeta.length
     ? comMeta.reduce((soma, l) => soma + Math.min(l.percentual!, 100), 0) / comMeta.length
     : null
-  const metasBatidas = comMeta.filter((l) => l.percentual! >= 100).length
+  const totalVendido = linhas
+    .filter((l) => l.meta.unidade === 'REAL')
+    .reduce((soma, l) => soma + l.valorRealizado, 0)
 
   if (!representantes.length) {
     return <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre um representante pra consultar as metas dele." />
@@ -71,9 +73,11 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
             <span className="note">média das metas atribuídas</span>
           </div>
           <div className="stat">
-            <span className="label">Metas batidas</span>
-            <span className="value">{metasBatidas}</span>
-            <span className="note">de {comMeta.length} no período</span>
+            <span className="label">Total vendido</span>
+            <span className="value">
+              {totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </span>
+            <span className="note">soma das metas em R$</span>
           </div>
         </div>
       ) : null}
