@@ -10,7 +10,7 @@ interface Props {
   aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
 }
 
-/** Linha editável de uma tabela de metas: Meta e Realizado digitáveis, Falta e % calculados na hora. */
+/** Linha editável de uma tabela de metas: Meta e Realizado digitáveis, Falta e progresso calculados na hora. */
 export function LinhaMetaRepresentante({ representanteId, meta, atribuicao, aoSalvar }: Props) {
   const [id, setId] = useState(atribuicao?.id ?? null)
   const [valorMeta, setValorMeta] = useState(atribuicao ? String(atribuicao.valorMeta) : '')
@@ -69,7 +69,19 @@ export function LinhaMetaRepresentante({ representanteId, meta, atribuicao, aoSa
         {erro ? <span className="hint warn"> {erro}</span> : null}
       </td>
       <td className="num">{falta.toLocaleString('pt-BR')}</td>
-      <td className="num">{percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`}</td>
+      <td className="num">
+        <div className="meta-progress-cell">
+          <span className="meta-progress-track">
+            <span
+              className={`meta-progress-fill${(percentual ?? 0) >= 100 ? ' is-complete' : ''}`}
+              style={{ width: `${Math.min(percentual ?? 0, 100)}%` }}
+            />
+          </span>
+          <span className="meta-progress-pct">
+            {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
+          </span>
+        </div>
+      </td>
     </tr>
   )
 }

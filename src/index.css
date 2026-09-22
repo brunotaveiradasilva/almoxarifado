@@ -366,10 +366,42 @@
   }
   .checklist label { display: flex; align-items: center; gap: 9px; font-size: 14px; }
 
-  .consulta-filtro { max-width: 320px; margin-bottom: 20px; }
-  .consulta-info { margin: -8px 0 20px; }
+  .consulta-filtro { max-width: 360px; margin-bottom: 14px; }
+  .consulta-filtro select { font-size: 16px; padding: 11px 14px; }
+  .consulta-info { margin: 0 0 22px; }
   .consulta-subtitulo { font-size: 17px; font-weight: 600; letter-spacing: -.015em; margin: 28px 0 12px; }
   .consulta-subtitulo:first-of-type { margin-top: 0; }
+
+  /* ---------- metas: kpis e card com barra de progresso ---------- */
+  .meta-kpis { max-width: 420px; margin-bottom: 24px; }
+
+  .meta-card {
+    background: var(--surface); border: 1px solid var(--divider);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden;
+  }
+  .meta-card + .meta-card { margin-top: 20px; }
+  .meta-card-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 18px 20px;
+  }
+  .meta-card-head h3 { font-size: 16px; font-weight: 600; letter-spacing: -.015em; }
+  .meta-badge {
+    font-size: 12px; font-weight: 500; color: var(--ink-2); background: var(--surface-2);
+    border-radius: var(--pill); padding: 4px 12px; white-space: nowrap;
+  }
+  .meta-card .table-scroll { overflow-x: auto; border-top: 1px solid var(--divider); }
+  .meta-card table { min-width: 620px; }
+  .meta-card .table-wrap { border: 0; border-radius: 0; box-shadow: none; }
+
+  .meta-progress-cell { display: flex; align-items: center; gap: 10px; min-width: 140px; }
+  .meta-progress-track {
+    flex: 1; height: 6px; border-radius: var(--pill); background: var(--surface-2); overflow: hidden;
+  }
+  :root[data-theme="dark"] .meta-progress-track { background: var(--line); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .meta-progress-track { background: var(--line); } }
+  .meta-progress-fill { display: block; height: 100%; border-radius: var(--pill); background: var(--accent); }
+  .meta-progress-fill.is-complete { background: var(--st-devolvido); }
+  .meta-progress-pct { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--ink-2); min-width: 3.4em; text-align: right; }
 
   .input-tabela {
     width: 90px; text-align: right; background: var(--surface); border: 1px solid var(--line);
