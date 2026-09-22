@@ -91,13 +91,13 @@ let fornecedores: Fornecedor[] = [
 ]
 
 let representantes: Representante[] = [
-  { id: novoId('rep'), nome: 'Marina Alves', fornecedores: [fornecedores[0]], email: 'marina@exemplo.com', celular: '(11) 99999-0001' },
-  { id: novoId('rep'), nome: 'Carlos Prado', fornecedores: [fornecedores[0], fornecedores[1]], email: 'carlos@exemplo.com', celular: '(11) 99999-0002' },
+  { id: novoId('rep'), nome: 'Marina Alves', fornecedores: [fornecedores[0]], email: 'marina@exemplo.com', celular: '(11) 99999-0001', codigoAds: '' },
+  { id: novoId('rep'), nome: 'Carlos Prado', fornecedores: [fornecedores[0], fornecedores[1]], email: 'carlos@exemplo.com', celular: '(11) 99999-0002', codigoAds: '' },
 ]
 
 let metas: Meta[] = [
-  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE' },
-  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL' },
+  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '' },
+  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '' },
 ]
 
 let metasRepresentante: MetaRepresentante[] = [
@@ -206,6 +206,7 @@ interface RepresentanteEntradaMock {
   fornecedorIds: string[]
   email: string
   celular: string
+  codigoAds: string
 }
 
 export function listarRepresentantes(): Promise<Representante[]> {
@@ -218,6 +219,7 @@ export function criarRepresentante(representante: RepresentanteEntradaMock): Pro
     nome: representante.nome,
     email: representante.email,
     celular: representante.celular,
+    codigoAds: representante.codigoAds,
     fornecedores: fornecedores.filter((f) => representante.fornecedorIds.includes(f.id)),
   }
   representantes = [...representantes, novo]
@@ -230,6 +232,7 @@ export function atualizarRepresentante(id: string, representante: RepresentanteE
     nome: representante.nome,
     email: representante.email,
     celular: representante.celular,
+    codigoAds: representante.codigoAds,
     fornecedores: fornecedores.filter((f) => representante.fornecedorIds.includes(f.id)),
   }
   representantes = representantes.map((r) => (r.id === id ? atualizado : r))
@@ -245,6 +248,7 @@ interface MetaEntradaMock {
   nome: string
   fornecedorId: string
   unidade: UnidadeMeta
+  codigoAdsDivisao: string
 }
 
 export function listarMetas(): Promise<Meta[]> {
@@ -252,13 +256,25 @@ export function listarMetas(): Promise<Meta[]> {
 }
 
 export function criarMeta(meta: MetaEntradaMock): Promise<Meta> {
-  const novo: Meta = { id: novoId('met'), nome: meta.nome, unidade: meta.unidade, fornecedor: achar(fornecedores, meta.fornecedorId) }
+  const novo: Meta = {
+    id: novoId('met'),
+    nome: meta.nome,
+    unidade: meta.unidade,
+    codigoAdsDivisao: meta.codigoAdsDivisao,
+    fornecedor: achar(fornecedores, meta.fornecedorId),
+  }
   metas = [...metas, novo]
   return Promise.resolve(novo)
 }
 
 export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> {
-  const atualizado: Meta = { id, nome: meta.nome, unidade: meta.unidade, fornecedor: achar(fornecedores, meta.fornecedorId) }
+  const atualizado: Meta = {
+    id,
+    nome: meta.nome,
+    unidade: meta.unidade,
+    codigoAdsDivisao: meta.codigoAdsDivisao,
+    fornecedor: achar(fornecedores, meta.fornecedorId),
+  }
   metas = metas.map((m) => (m.id === id ? atualizado : m))
   return Promise.resolve(atualizado)
 }
@@ -306,4 +322,9 @@ export function atualizarMetaRepresentante(id: string, mv: MetaRepresentanteEntr
 export function excluirMetaRepresentante(id: string): Promise<void> {
   metasRepresentante = metasRepresentante.filter((m) => m.id !== id)
   return Promise.resolve()
+}
+
+/** No mock não tem ADS de verdade pra consultar — devolve a lista como está (nenhum representante/meta de exemplo tem código ADS cadastrado). */
+export function sincronizarMetasRepresentante(): Promise<MetaRepresentante[]> {
+  return Promise.resolve(metasRepresentante)
 }
