@@ -96,8 +96,8 @@ let representantes: Representante[] = [
 ]
 
 let metas: Meta[] = [
-  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '' },
-  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '' },
+  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '' },
+  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '' },
 ]
 
 let metasRepresentante: MetaRepresentante[] = [
@@ -249,6 +249,7 @@ interface MetaEntradaMock {
   fornecedorId: string
   unidade: UnidadeMeta
   codigoAdsDivisao: string
+  cnpjAdsFornecedor: string
 }
 
 export function listarMetas(): Promise<Meta[]> {
@@ -261,6 +262,7 @@ export function criarMeta(meta: MetaEntradaMock): Promise<Meta> {
     nome: meta.nome,
     unidade: meta.unidade,
     codigoAdsDivisao: meta.codigoAdsDivisao,
+    cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = [...metas, novo]
@@ -273,6 +275,7 @@ export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> 
     nome: meta.nome,
     unidade: meta.unidade,
     codigoAdsDivisao: meta.codigoAdsDivisao,
+    cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = metas.map((m) => (m.id === id ? atualizado : m))
