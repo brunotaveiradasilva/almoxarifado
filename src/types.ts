@@ -56,8 +56,10 @@ export interface Meta {
   /** Uma meta pertence a um único fornecedor. */
   fornecedor: Fornecedor
   unidade: UnidadeMeta
-  /** Código da divisão correspondente na API da ADS (histórico de vendas) — vazio se essa meta não é sincronizada automaticamente. */
+  /** Código (ou vários, separados por vírgula) da divisão correspondente na API da ADS — ignorado se cnpjAdsFornecedor estiver preenchido. */
   codigoAdsDivisao: string
+  /** CNPJ do fornecedor na API da ADS — soma tudo vendido dele, sem filtrar por divisão. Tem prioridade sobre codigoAdsDivisao. */
+  cnpjAdsFornecedor: string
 }
 
 /** O valor de uma meta atribuído a um representante específico: quanto ele precisa bater e quanto já bateu. */

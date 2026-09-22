@@ -188,6 +188,7 @@ export interface MetaEntrada {
   fornecedorId: string
   unidade: UnidadeMeta
   codigoAdsDivisao: string
+  cnpjAdsFornecedor: string
 }
 
 export function listarMetas(): Promise<Meta[]> {
