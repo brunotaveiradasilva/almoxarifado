@@ -17,8 +17,8 @@ const SUBABAS: { valor: Subaba; rotulo: string }[] = [
   { valor: 'fornecedores', rotulo: 'Fornecedores' },
   { valor: 'representantes', rotulo: 'Representantes' },
   { valor: 'metas', rotulo: 'Metas' },
-  { valor: 'porRepresentante', rotulo: 'Metas por representante' },
-  { valor: 'porFornecedor', rotulo: 'Metas por fornecedor' },
+  { valor: 'porRepresentante', rotulo: 'Meta Representante' },
+  { valor: 'porFornecedor', rotulo: 'Meta Fornecedor' },
 ]
 
 /** Cadastros de apoio às metas — fornecedores, representantes e metas — e telas de consulta. Só monta para quem é admin. */
@@ -62,7 +62,6 @@ export function PainelMetas() {
       <div className="view-head">
         <div>
           <h2>Metas</h2>
-          <p>Cadastre fornecedores, representantes e metas, e consulte as metas por representante ou por fornecedor.</p>
         </div>
         {subaba === 'fornecedores' ? (
           <button className="btn btn-primary" onClick={() => setDialogoFornecedor({ aberto: true, fornecedor: null })}>
