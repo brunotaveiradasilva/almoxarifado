@@ -68,7 +68,7 @@ export function LinhaMetaRepresentante({ representanteId, meta, atribuicao, aoSa
         {salvando ? <span className="hint"> salvando…</span> : null}
         {erro ? <span className="hint warn"> {erro}</span> : null}
       </td>
-      <td className="num">{falta.toLocaleString('pt-BR')}</td>
+      <td className="num">{falta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
       <td className="num">
         <div className="meta-progress-cell">
           <span className="meta-progress-track">

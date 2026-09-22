@@ -18,7 +18,10 @@ export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas
   const [fornecedorId, setFornecedorId] = useState(fornecedores[0]?.id ?? '')
 
   const metasDoFornecedor = useMemo(
-    () => metas.filter((m) => m.fornecedor.id === fornecedorId),
+    () =>
+      metas
+        .filter((m) => m.fornecedor.id === fornecedorId)
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true })),
     [metas, fornecedorId],
   )
 
