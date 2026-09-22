@@ -197,7 +197,9 @@ export function useMetas() {
   /**
    * Força agora o recálculo do realizado a partir do histórico de vendas da ADS. A API só devolve
    * as atribuições que realmente têm representante e meta com código ADS cadastrado — as outras
-   * continuam como estavam, só mescla as que vieram atualizadas.
+   * continuam como estavam, só mescla as que vieram atualizadas. Cada atribuição vem com o
+   * representante completo (já com o totalVendidoAds recalculado), então também atualiza a lista
+   * de representantes — senão o card "Total vendido" continua mostrando o valor antigo.
    */
   const sincronizarComAds = useCallback(async () => {
     setErro(null)
@@ -206,6 +208,9 @@ export function useMetas() {
       const atualizadas = await api.sincronizarMetasRepresentante()
       const porId = new Map(atualizadas.map((m) => [m.id, m]))
       setMetasRepresentante((atual) => atual.map((m) => porId.get(m.id) ?? m))
+
+      const representantesPorId = new Map(atualizadas.map((m) => [m.representante.id, m.representante]))
+      setRepresentantes((atual) => atual.map((r) => representantesPorId.get(r.id) ?? r))
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
