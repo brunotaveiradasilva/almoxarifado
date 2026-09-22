@@ -19,6 +19,7 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
     const fornecedorIds = new Set(representante.fornecedores.map((f) => f.id))
     return metas
       .filter((m) => fornecedorIds.has(m.fornecedor.id))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true }))
       .map((meta) => {
         const atribuicao =
           metasRepresentante.find((mv) => mv.representante.id === representanteId && mv.meta.id === meta.id) ?? null
@@ -34,9 +35,7 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
   const progressoMedio = comMeta.length
     ? comMeta.reduce((soma, l) => soma + Math.min(l.percentual!, 100), 0) / comMeta.length
     : null
-  const totalVendido = linhas
-    .filter((l) => l.meta.unidade === 'REAL')
-    .reduce((soma, l) => soma + l.valorRealizado, 0)
+  const totalVendido = representante?.totalVendidoAds ?? 0
 
   if (!representantes.length) {
     return <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre um representante pra consultar as metas dele." />
@@ -77,7 +76,7 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
             <span className="value">
               {totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </span>
-            <span className="note">soma das metas em R$</span>
+            <span className="note">tudo vendido no mês, todos os fornecedores</span>
           </div>
         </div>
       ) : null}
@@ -106,9 +105,9 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
                   <tr key={meta.id}>
                     <td className="cell-material">{meta.nome}</td>
                     <td>{ROTULO_UNIDADE_META[meta.unidade]}</td>
-                    <td className="num">{atribuicao ? valorMeta.toLocaleString('pt-BR') : '—'}</td>
-                    <td className="num">{atribuicao ? valorRealizado.toLocaleString('pt-BR') : '—'}</td>
-                    <td className="num">{atribuicao ? falta.toLocaleString('pt-BR') : '—'}</td>
+                    <td className="num">{atribuicao ? valorMeta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}</td>
+                    <td className="num">{atribuicao ? valorRealizado.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}</td>
+                    <td className="num">{atribuicao ? falta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}</td>
                     <td className="num">
                       <div className="meta-progress-cell">
                         <span className="meta-progress-track">

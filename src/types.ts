@@ -45,6 +45,8 @@ export interface Representante {
   celular: string
   /** Código desse representante na API da ADS (histórico de vendas) — vazio se ele não é sincronizado automaticamente. */
   codigoAds: string
+  /** Total vendido em R$ no mês corrente, somando todos os fornecedores/divisões (não só o que está mapeado em alguma meta). Null se nunca foi sincronizado. */
+  totalVendidoAds: number | null
 }
 
 /** Como uma meta é medida. */

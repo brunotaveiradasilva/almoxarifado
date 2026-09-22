@@ -91,8 +91,8 @@ let fornecedores: Fornecedor[] = [
 ]
 
 let representantes: Representante[] = [
-  { id: novoId('rep'), nome: 'Marina Alves', fornecedores: [fornecedores[0]], email: 'marina@exemplo.com', celular: '(11) 99999-0001', codigoAds: '' },
-  { id: novoId('rep'), nome: 'Carlos Prado', fornecedores: [fornecedores[0], fornecedores[1]], email: 'carlos@exemplo.com', celular: '(11) 99999-0002', codigoAds: '' },
+  { id: novoId('rep'), nome: 'Marina Alves', fornecedores: [fornecedores[0]], email: 'marina@exemplo.com', celular: '(11) 99999-0001', codigoAds: '', totalVendidoAds: null },
+  { id: novoId('rep'), nome: 'Carlos Prado', fornecedores: [fornecedores[0], fornecedores[1]], email: 'carlos@exemplo.com', celular: '(11) 99999-0002', codigoAds: '', totalVendidoAds: null },
 ]
 
 let metas: Meta[] = [
@@ -220,6 +220,7 @@ export function criarRepresentante(representante: RepresentanteEntradaMock): Pro
     email: representante.email,
     celular: representante.celular,
     codigoAds: representante.codigoAds,
+    totalVendidoAds: null,
     fornecedores: fornecedores.filter((f) => representante.fornecedorIds.includes(f.id)),
   }
   representantes = [...representantes, novo]
@@ -233,6 +234,7 @@ export function atualizarRepresentante(id: string, representante: RepresentanteE
     email: representante.email,
     celular: representante.celular,
     codigoAds: representante.codigoAds,
+    totalVendidoAds: achar(representantes, id).totalVendidoAds,
     fornecedores: fornecedores.filter((f) => representante.fornecedorIds.includes(f.id)),
   }
   representantes = representantes.map((r) => (r.id === id ? atualizado : r))
