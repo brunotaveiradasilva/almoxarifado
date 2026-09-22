@@ -5,6 +5,7 @@ import { PainelResumo } from './PainelResumo'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaAgendamentos } from './TabelaAgendamentos'
 import { TabelaMateriais } from './TabelaMateriais'
+import { DetalhesAgendamento } from './DetalhesAgendamento'
 import { FormularioAgendamento } from './FormularioAgendamento'
 import { FormularioMaterial } from './FormularioMaterial'
 import { FormularioTrocarSenha } from './FormularioTrocarSenha'
@@ -46,6 +47,8 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
     agendamento: Agendamento | null
     materialInicial?: string
   }>({ aberto: false, agendamento: null })
+
+  const [detalhesAgendamento, setDetalhesAgendamento] = useState<Agendamento | null>(null)
 
   const [dialogoMaterial, setDialogoMaterial] = useState<{ aberto: boolean; material: Material | null }>({
     aberto: false,
@@ -181,6 +184,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
                       agendamentos={agendamentosVisiveis}
                       materiais={app.materiais}
                       aoMudarStatus={app.definirStatus}
+                      aoVerDetalhes={setDetalhesAgendamento}
                       aoEditar={(a) => abrirAgendamento(a)}
                       aoExcluir={app.removerAgendamento}
                     />
@@ -288,6 +292,21 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         aoSair={aoSair}
         aoTrocarFoto={aoTrocarFoto}
       />
+
+      {detalhesAgendamento ? (
+        <DetalhesAgendamento
+          agendamento={detalhesAgendamento}
+          materiais={app.materiais}
+          aoFechar={() => setDetalhesAgendamento(null)}
+          aoEditar={() => {
+            const agendamento = detalhesAgendamento
+            setDetalhesAgendamento(null)
+            abrirAgendamento(agendamento)
+          }}
+          aoExcluir={() => app.removerAgendamento(detalhesAgendamento.id)}
+          aoMudarStatus={app.definirStatus}
+        />
+      ) : null}
 
       {dialogoAgendamento.aberto ? (
         <FormularioAgendamento

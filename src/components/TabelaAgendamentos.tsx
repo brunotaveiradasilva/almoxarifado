@@ -7,6 +7,7 @@ interface Props {
   agendamentos: Agendamento[]
   materiais: Material[]
   aoMudarStatus: (id: string, status: Status) => void
+  aoVerDetalhes: (agendamento: Agendamento) => void
   aoEditar: (agendamento: Agendamento) => void
   aoExcluir: (id: string) => void
 }
@@ -20,7 +21,7 @@ function Data({ iso }: { iso: string }) {
   )
 }
 
-export function TabelaAgendamentos({ agendamentos, materiais, aoMudarStatus, aoEditar, aoExcluir }: Props) {
+export function TabelaAgendamentos({ agendamentos, materiais, aoMudarStatus, aoVerDetalhes, aoEditar, aoExcluir }: Props) {
   return (
     <tbody>
       {agendamentos.map((a) => {
@@ -29,7 +30,11 @@ export function TabelaAgendamentos({ agendamentos, materiais, aoMudarStatus, aoE
         const atraso = status === 'atrasado' ? diasEntre(a.devolucao, hoje()) : 0
 
         return (
-          <tr key={a.id} className={status === 'atrasado' ? 'is-late' : status === 'devolvido' ? 'is-done' : undefined}>
+          <tr
+            key={a.id}
+            className={status === 'atrasado' ? 'is-late' : status === 'devolvido' ? 'is-done' : undefined}
+            onClick={() => aoVerDetalhes(a)}
+          >
             <td className="cell-material">
               {material?.nome ?? 'Material removido'}
               {material?.codigo ? <span className="cell-code">{material.codigo}</span> : null}
@@ -48,7 +53,7 @@ export function TabelaAgendamentos({ agendamentos, materiais, aoMudarStatus, aoE
               {atraso ? <div className="cell-code">{atraso === 1 ? '1 dia' : `${atraso} dias`}</div> : null}
             </td>
             <td className="cell-obs">{a.obs || '—'}</td>
-            <td className="actions-cell">
+            <td className="actions-cell" onClick={(e) => e.stopPropagation()}>
               <div className="row-actions">
                 {a.status === 'agendado' ? (
                   <button className="btn btn-sm" onClick={() => aoMudarStatus(a.id, 'retirado')}>
