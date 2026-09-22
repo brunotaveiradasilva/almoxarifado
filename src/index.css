@@ -405,7 +405,9 @@
   .consulta-subtitulo:first-of-type { margin-top: 0; }
 
   /* ---------- metas: kpis e card com barra de progresso ---------- */
-  .meta-kpis { max-width: 420px; margin-bottom: 24px; }
+  .meta-kpis { max-width: 640px; margin-bottom: 24px; }
+  .meta-kpis .stat { padding: 26px 28px; gap: 6px; }
+  .meta-kpis .stat .value { font-size: 52px; }
 
   .meta-card {
     background: var(--surface); border: 1px solid var(--divider);
