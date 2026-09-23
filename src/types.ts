@@ -62,6 +62,8 @@ export interface Meta {
   codigoAdsDivisao: string
   /** CNPJ do fornecedor na API da ADS — soma tudo vendido dele, sem filtrar por divisão. Tem prioridade sobre codigoAdsDivisao. */
   cnpjAdsFornecedor: string
+  /** Produtos que não contam pra meta, separados por vírgula: código do produto na ADS ("5085") ou trecho do nome ("WELLPET"). Null em metas antigas. */
+  produtosExcluidos: string | null
 }
 
 /** O valor de uma meta atribuído a um representante num mês: quanto ele precisa bater e quanto já bateu. */

@@ -200,6 +200,7 @@ export interface MetaEntrada {
   unidade: UnidadeMeta
   codigoAdsDivisao: string
   cnpjAdsFornecedor: string
+  produtosExcluidos: string
 }
 
 export function listarMetas(): Promise<Meta[]> {

@@ -18,6 +18,7 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
   const [unidade, setUnidade] = useState<UnidadeMeta>(meta?.unidade ?? 'KG')
   const [codigoAdsDivisao, setCodigoAdsDivisao] = useState(meta?.codigoAdsDivisao ?? '')
   const [cnpjAdsFornecedor, setCnpjAdsFornecedor] = useState(meta?.cnpjAdsFornecedor ?? '')
+  const [produtosExcluidos, setProdutosExcluidos] = useState(meta?.produtosExcluidos ?? '')
   const [erro, setErro] = useState('')
 
   function confirmar() {
@@ -32,6 +33,7 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
         unidade,
         codigoAdsDivisao: codigoAdsDivisao.trim(),
         cnpjAdsFornecedor: cnpjAdsFornecedor.trim(),
+        produtosExcluidos: produtosExcluidos.trim(),
       },
       meta?.id,
     )
@@ -110,6 +112,21 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
         <p className="hint">
           Pra metas "geral" que somam tudo vendido de um fornecedor na ADS, sem filtrar por divisão. Deixe em branco
           se essa meta usa o código de divisão acima. Se os dois estiverem preenchidos, esse tem prioridade.
+        </p>
+      </div>
+
+      <div className="field">
+        <label htmlFor="me-produtos-excluidos">Produtos excluídos da meta</label>
+        <input
+          id="me-produtos-excluidos"
+          maxLength={255}
+          placeholder="Ex.: WELLPET ou 5085,5084"
+          value={produtosExcluidos}
+          onChange={(e) => setProdutosExcluidos(e.target.value)}
+        />
+        <p className="hint">
+          Vendas desses produtos não contam pra meta. Separe por vírgula: um número é o código do produto na ADS; um
+          texto tira todo produto que tenha ele no nome (ex.: WELLPET tira todas as apresentações do Wellpet).
         </p>
       </div>
     </Modal>
