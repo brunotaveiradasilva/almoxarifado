@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMetas } from '../hooks/useMetas'
+import { CarregandoTelaInteira } from './CarregandoTelaInteira'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaFornecedores } from './TabelaFornecedores'
 import { FormularioFornecedor } from './FormularioFornecedor'
@@ -224,6 +225,10 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           aoCopiarMes={metas.copiarMetasDoMes}
         />
       )}
+
+      {metas.sincronizando ? (
+        <CarregandoTelaInteira texto="Sincronizando com a ADS… isso pode levar alguns minutos." />
+      ) : null}
 
       {dialogoFornecedor.aberto ? (
         <FormularioFornecedor

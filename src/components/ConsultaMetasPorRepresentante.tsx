@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react'
 import { BotoesOrdemMeta } from './BotoesOrdemMeta'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
-import { rotuloMes, rotuloMesCurto } from '../lib/mes'
+import { rotuloMesCurto } from '../lib/mes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
-import type { Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
+import type { Fornecedor, Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
 
 interface Props {
   representantes: Representante[]
@@ -17,9 +17,19 @@ interface Props {
   aoTrocarOrdem: (meta: Meta, vizinha: Meta) => void
 }
 
+interface Linha {
+  meta: Meta
+  atribuicao: MetaRepresentante | null
+  valorMeta: number
+  valorRealizado: number
+  falta: number
+  percentual: number | null
+}
+
 /**
- * Metas do mês escolhido, de todos os fornecedores para quem o representante trabalha. Os valores só
- * se editam na tela "Meta Fornecedor"; aqui dá pra mudar só a ordem das metas.
+ * Metas do mês escolhido, de todos os fornecedores para quem o representante trabalha — um card por
+ * fornecedor quando ele trabalha pra mais de um. Os valores só se editam na tela "Meta Fornecedor";
+ * aqui dá pra mudar só a ordem das metas.
  */
 export function ConsultaMetasPorRepresentante({
   representantes,
@@ -34,7 +44,7 @@ export function ConsultaMetasPorRepresentante({
   const representante = representantes.find((v) => v.id === representanteId) ?? null
   const mesesComDados = useMemo(() => [...new Set(metasRepresentante.map((mv) => mv.mes))], [metasRepresentante])
 
-  const linhas = useMemo(() => {
+  const linhas = useMemo((): Linha[] => {
     if (!representante) return []
     const fornecedorIds = new Set(representante.fornecedores.map((f) => f.id))
     // Sem ordenar aqui: as metas já vêm na ordem que o admin escolheu na aba Metas.
@@ -52,6 +62,18 @@ export function ConsultaMetasPorRepresentante({
         return { meta, atribuicao, valorMeta, valorRealizado, falta, percentual }
       })
   }, [representante, metas, metasRepresentante, representanteId, mes])
+
+  // Um grupo por fornecedor, na ordem da primeira meta de cada um.
+  const grupos = useMemo(() => {
+    const porFornecedor = new Map<string, { fornecedor: Fornecedor; linhas: Linha[] }>()
+    for (const linha of linhas) {
+      const f = linha.meta.fornecedor
+      if (!porFornecedor.has(f.id)) porFornecedor.set(f.id, { fornecedor: f, linhas: [] })
+      porFornecedor.get(f.id)!.linhas.push(linha)
+    }
+    return [...porFornecedor.values()]
+  }, [linhas])
+  const separarPorFornecedor = (representante?.fornecedores.length ?? 0) > 1 && grupos.length > 0
 
   const comMeta = linhas.filter((l) => l.percentual !== null)
   const progressoMedio = comMeta.length
@@ -79,14 +101,6 @@ export function ConsultaMetasPorRepresentante({
         <SeletorMes id="cv-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={aoMudarMes} />
       </div>
 
-      {representante ? (
-        <p className="hint consulta-info">
-          Fornecedores associados: <strong>{representante.fornecedores.map((f) => f.nome).join(', ') || '—'}</strong>
-          {representante.email ? ` · ${representante.email}` : ''}
-          {representante.celular ? ` · ${representante.celular}` : ''}
-        </p>
-      ) : null}
-
       {comMeta.length ? (
         <div className="stats meta-kpis">
           <div className="stat">
@@ -94,79 +108,107 @@ export function ConsultaMetasPorRepresentante({
             <span className="value">
               {progressoMedio === null ? '—' : `${progressoMedio.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
             </span>
-            <span className="note">média das metas atribuídas</span>
           </div>
           <div className="stat">
             <span className="label">Total vendido</span>
             <span className="value">
               {totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </span>
-            <span className="note">tudo vendido em {rotuloMes(mes)}, todos os fornecedores</span>
           </div>
         </div>
       ) : null}
 
-      <div className="meta-card">
-        <div className="meta-card-head">
-          <h3>Metas de {representante?.nome ?? '—'}</h3>
-          <span className="meta-badge">{rotuloMesCurto(mes)}</span>
-        </div>
+      {separarPorFornecedor ? (
+        grupos.map((g) => (
+          <CardMetas key={g.fornecedor.id} titulo={g.fornecedor.nome} mes={mes} linhas={g.linhas} aoTrocarOrdem={aoTrocarOrdem} />
+        ))
+      ) : (
+        <CardMetas
+          titulo={`Metas de ${representante?.nome ?? '—'}`}
+          mes={mes}
+          linhas={linhas}
+          aoTrocarOrdem={aoTrocarOrdem}
+        />
+      )}
+    </div>
+  )
+}
 
-        <div className="table-scroll">
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Meta</th>
-                  <th className="num">Meta</th>
-                  <th className="num">Realizado</th>
-                  <th className="num">Falta</th>
-                  <th className="num">Progresso</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {linhas.map(({ meta, atribuicao, valorMeta, valorRealizado, falta, percentual }, i) => (
-                  <tr key={meta.id}>
-                    <td className="cell-material">{meta.nome}</td>
-                    <td className="num">{atribuicao ? formatarValorMeta(valorMeta, meta.unidade) : '—'}</td>
-                    <td className="num">{atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '—'}</td>
-                    <td className="num">{atribuicao ? formatarValorMeta(falta, meta.unidade) : '—'}</td>
-                    <td className="num">
-                      <div className="meta-progress-cell">
-                        <span className="meta-progress-track">
-                          <span
-                            className={`meta-progress-fill${(percentual ?? 0) >= 100 ? ' is-complete' : ''}`}
-                            style={{ width: `${Math.min(percentual ?? 0, 100)}%` }}
-                          />
-                        </span>
-                        <span className="meta-progress-pct">
-                          {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="actions-cell">
-                      <div className="row-actions">
-                        <BotoesOrdemMeta
-                          meta={meta}
-                          anterior={linhas[i - 1]?.meta ?? null}
-                          proxima={linhas[i + 1]?.meta ?? null}
-                          aoTrocar={aoTrocarOrdem}
+interface PropsCard {
+  titulo: string
+  mes: string
+  linhas: Linha[]
+  aoTrocarOrdem: (meta: Meta, vizinha: Meta) => void
+}
+
+/** As setas de ordem trocam com a vizinha dentro do card — cada card é de um fornecedor só. */
+function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
+  return (
+    <div className="meta-card">
+      <div className="meta-card-head">
+        <h3>{titulo}</h3>
+        <span className="meta-badge">{rotuloMesCurto(mes)}</span>
+      </div>
+
+      <div className="table-scroll">
+        <div className="table-wrap">
+          <table className="tabela-metas-representante">
+            <thead>
+              <tr>
+                <th>Meta</th>
+                <th className="num">Meta</th>
+                <th className="num">Realizado</th>
+                <th className="num">Falta</th>
+                <th className="num">Progresso</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {linhas.map(({ meta, atribuicao, valorMeta, valorRealizado, falta, percentual }, i) => (
+                <tr key={meta.id}>
+                  <td className="cell-material">
+                    {meta.nome}
+                    {meta.unidade === 'KG' && atribuicao?.realizadoEmReais != null ? (
+                      <span className="meta-em-reais">{formatarValorMeta(atribuicao.realizadoEmReais, 'REAL')}</span>
+                    ) : null}
+                  </td>
+                  <td className="num">{atribuicao ? formatarValorMeta(valorMeta, meta.unidade) : '—'}</td>
+                  <td className="num">{atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '—'}</td>
+                  <td className="num">{atribuicao ? formatarValorMeta(falta, meta.unidade) : '—'}</td>
+                  <td className="num">
+                    <div className="meta-progress-cell">
+                      <span className="meta-progress-track">
+                        <span
+                          className={`meta-progress-fill${(percentual ?? 0) >= 100 ? ' is-complete' : ''}`}
+                          style={{ width: `${Math.min(percentual ?? 0, 100)}%` }}
                         />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </span>
+                      <span className="meta-progress-pct">
+                        {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="actions-cell">
+                    <div className="row-actions">
+                      <BotoesOrdemMeta
+                        meta={meta}
+                        anterior={linhas[i - 1]?.meta ?? null}
+                        proxima={linhas[i + 1]?.meta ?? null}
+                        aoTrocar={aoTrocarOrdem}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-            {!linhas.length ? (
-              <EstadoVazio
-                titulo="Nenhuma meta pra esse representante"
-                texto="Nenhum dos fornecedores desse representante tem meta cadastrada ainda."
-              />
-            ) : null}
-          </div>
+          {!linhas.length ? (
+            <EstadoVazio
+              titulo="Nenhuma meta pra esse representante"
+              texto="Nenhum dos fornecedores desse representante tem meta cadastrada ainda."
+            />
+          ) : null}
         </div>
       </div>
     </div>

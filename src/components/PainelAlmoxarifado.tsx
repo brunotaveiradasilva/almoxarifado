@@ -276,10 +276,12 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
           </section>
         )}
 
-        <footer className="foot">
-          {app.materiais.length} material(is) cadastrado(s) · {app.agendamentos.length} agendamento(s). Os dados
-          ficam no servidor — acessíveis de qualquer computador.
-        </footer>
+        {aba !== 'metas' ? (
+          <footer className="foot">
+            {app.materiais.length} material(is) cadastrado(s) · {app.agendamentos.length} agendamento(s). Os dados
+            ficam no servidor — acessíveis de qualquer computador.
+          </footer>
+        ) : null}
       </main>
 
       <MenuLateral
