@@ -35,6 +35,8 @@ export function ConsultaMetasPorFornecedor({
   aoCopiarMes,
 }: Props) {
   const [fornecedorId, setFornecedorId] = useState(fornecedores[0]?.id ?? '')
+  // Vazio = todas as metas do fornecedor.
+  const [metaId, setMetaId] = useState('')
   const [editando, setEditando] = useState<{ representante: Representante; meta: Meta } | null>(null)
   const [copiando, setCopiando] = useState(false)
 
@@ -49,6 +51,10 @@ export function ConsultaMetasPorFornecedor({
 
   // Na ordem que o admin escolheu na aba Metas (a API já devolve assim).
   const metasDoFornecedor = useMemo(() => metas.filter((m) => m.fornecedor.id === fornecedorId), [metas, fornecedorId])
+  // Meta escolhida que não é desse fornecedor (ex: acabou de trocar de fornecedor) vale como "todas".
+  const metasNaTabela = metasDoFornecedor.some((m) => m.id === metaId)
+    ? metasDoFornecedor.filter((m) => m.id === metaId)
+    : metasDoFornecedor
 
   const representantesDoFornecedor = useMemo(
     () =>
@@ -79,10 +85,28 @@ export function ConsultaMetasPorFornecedor({
       <div className="consulta-filtros">
         <div className="field consulta-filtro">
           <label htmlFor="cf-fornecedor">Fornecedor</label>
-          <select id="cf-fornecedor" value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)}>
+          <select
+            id="cf-fornecedor"
+            value={fornecedorId}
+            onChange={(e) => {
+              setFornecedorId(e.target.value)
+              setMetaId('')
+            }}
+          >
             {fornecedores.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field consulta-filtro">
+          <label htmlFor="cf-meta">Meta</label>
+          <select id="cf-meta" value={metaId} onChange={(e) => setMetaId(e.target.value)}>
+            <option value="">Todas as metas</option>
+            {metasDoFornecedor.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.nome}
               </option>
             ))}
           </select>
@@ -133,7 +157,7 @@ export function ConsultaMetasPorFornecedor({
             </thead>
             <tbody>
               {representantesDoFornecedor.flatMap((v) =>
-                metasDoFornecedor.map((meta) => (
+                metasNaTabela.map((meta) => (
                   <LinhaMetaRepresentante
                     key={`${v.id}:${meta.id}`}
                     representanteNome={v.nome}
