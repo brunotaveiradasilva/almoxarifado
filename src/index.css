@@ -3,6 +3,8 @@
    azul #0071E3, superfícies claras/escuras e botões em pílula. */
 
 :root {
+    /* Diz pro navegador qual tema está valendo: barras de rolagem e caixinhas nativas acompanham. */
+    color-scheme: light;
     --ground: #FFFFFF;
     --surface: #FFFFFF;
     --surface-2: #F5F5F7;
@@ -31,6 +33,7 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
+      color-scheme: dark;
       --ground: #000000;
       --surface: #1D1D1F;
       --surface-2: #2C2C2E;
@@ -53,6 +56,7 @@
   }
 
   :root[data-theme="dark"] {
+    color-scheme: dark;
     --ground: #000000;
     --surface: #1D1D1F;
     --surface-2: #2C2C2E;
@@ -131,6 +135,34 @@
   }
   .menu-lateral-subitem:hover { background: var(--surface-2); color: var(--ink); }
   .menu-lateral-subitem.is-ativo { color: var(--accent); font-weight: 500; }
+
+  /* Setinha ao lado de Materiais/Metas: aponta pra baixo quando os subitens estão abertos. */
+  .menu-lateral-seta {
+    margin-left: auto; display: inline-flex; opacity: .55;
+    transition: transform .28s cubic-bezier(.2, .8, .2, 1), opacity .18s ease;
+  }
+  .menu-lateral-item:hover .menu-lateral-seta { opacity: .9; }
+  .menu-lateral-seta.is-aberta { transform: rotate(90deg); }
+
+  /* Sanfona: a altura anima de 0 até a do conteúdo (grid 0fr → 1fr), sem precisar medir em JS. */
+  .menu-lateral-sanfona {
+    display: grid; grid-template-rows: 0fr; opacity: 0;
+    transition: grid-template-rows .3s cubic-bezier(.2, .8, .2, 1), opacity .2s ease;
+  }
+  .menu-lateral-sanfona.is-aberta { grid-template-rows: 1fr; opacity: 1; }
+  .menu-lateral-sanfona-conteudo { min-height: 0; overflow: hidden; }
+  /* Os subitens descem um atrás do outro ao abrir; ao fechar somem juntos, sem atraso. */
+  .menu-lateral-sanfona .menu-lateral-subitem {
+    opacity: 0; transform: translateY(-6px);
+    transition: opacity .2s ease, transform .25s ease, background .18s ease, color .18s ease;
+  }
+  .menu-lateral-sanfona.is-aberta .menu-lateral-subitem {
+    opacity: 1; transform: none;
+    transition-delay: calc(var(--i, 0) * 35ms + 60ms), calc(var(--i, 0) * 35ms + 60ms), 0s, 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .menu-lateral-sanfona, .menu-lateral-seta, .menu-lateral-sanfona .menu-lateral-subitem { transition: none; }
+  }
   nav.tabs.tabs-so-celular { display: none; }
 
   .menu-lateral-conta { margin-top: auto; position: relative; }
@@ -193,7 +225,7 @@
     .menu-lateral-item span:not(:first-child) { display: none; }
     .menu-lateral-item { justify-content: center; padding: 10px; }
     .menu-lateral-usuario { display: none; }
-    .menu-lateral-subitens { display: none; }
+    .menu-lateral-sanfona { display: none; }
     nav.tabs.tabs-so-celular { display: flex; overflow-x: auto; }
   }
 
@@ -381,6 +413,23 @@
   }
   .lista-usuarios li:last-child { border-bottom: 0; }
 
+  /* ---------- minha conta ---------- */
+  .conta-perfil { display: flex; align-items: center; gap: 16px; }
+  .conta-avatar {
+    width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2);
+    font-size: 24px; font-weight: 600;
+  }
+  .conta-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .conta-perfil-info { display: grid; gap: 8px; min-width: 0; }
+  .conta-perfil-info strong { font-size: 17px; font-weight: 600; letter-spacing: -.015em; overflow-wrap: anywhere; }
+  .conta-perfil-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .conta-senha { display: grid; gap: 14px; padding-top: 18px; border-top: 1px solid var(--divider); }
+  .conta-senha h4 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .conta-senha-rodape { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+  .conta-ok { font-size: 13px; color: var(--st-devolvido); }
+
   .form-novo-usuario {
     display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;
     padding-top: 14px; border-top: 1px solid var(--divider);
@@ -415,7 +464,12 @@
     display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;
     border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px;
   }
-  .checklist label { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+  .checklist label { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink); cursor: pointer; }
+  /* Desfaz o estilo de caixa de texto do .field input (width 100%, padding, borda), que espremia o nome. */
+  .field .checklist input[type="checkbox"] {
+    flex: none; width: 18px; height: 18px; margin: 0; padding: 0;
+    border: 0; box-shadow: none; background: none; accent-color: var(--accent); cursor: pointer;
+  }
 
   .consulta-filtro { max-width: 360px; margin-bottom: 14px; }
   .consulta-filtro select { font-size: 16px; padding: 11px 14px; }
