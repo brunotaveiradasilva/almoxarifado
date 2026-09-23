@@ -5,6 +5,10 @@ interface Props {
   aoFechar: () => void
   aoConfirmar: () => void
   textoConfirmar: string
+  /** Texto do botão secundário; null esconde o botão (ex.: tela de "deu certo", que só tem o de fechar). */
+  textoCancelar?: string | null
+  /** Ação do botão secundário, quando não for simplesmente fechar (ex.: "Voltar" um passo). */
+  aoCancelar?: () => void
   mensagem?: string
   children: ReactNode
 }
@@ -13,7 +17,16 @@ interface Props {
  * Janela de formulário sobre o elemento nativo <dialog>: já vem com
  * foco preso dentro dela, fundo escurecido e fechamento pelo Esc.
  */
-export function Modal({ titulo, aoFechar, aoConfirmar, textoConfirmar, mensagem, children }: Props) {
+export function Modal({
+  titulo,
+  aoFechar,
+  aoConfirmar,
+  textoConfirmar,
+  textoCancelar = 'Cancelar',
+  aoCancelar,
+  mensagem,
+  children,
+}: Props) {
   const ref = useRef<HTMLDialogElement>(null)
 
   // O componente só existe enquanto o diálogo deve estar aberto:
@@ -42,9 +55,11 @@ export function Modal({ titulo, aoFechar, aoConfirmar, textoConfirmar, mensagem,
 
         <div className="dlg-foot">
           {mensagem ? <span className="msg">{mensagem}</span> : null}
-          <button type="button" className="btn" onClick={aoFechar}>
-            Cancelar
-          </button>
+          {textoCancelar !== null ? (
+            <button type="button" className="btn" onClick={aoCancelar ?? aoFechar}>
+              {textoCancelar}
+            </button>
+          ) : null}
           <button type="submit" className="btn btn-primary">
             {textoConfirmar}
           </button>

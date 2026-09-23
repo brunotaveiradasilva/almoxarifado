@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
+import { DialogoEditarMetaRepresentante } from './DialogoEditarMetaRepresentante'
 import { LinhaMetaRepresentante } from './LinhaMetaRepresentante'
-import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
 import type { MetaRepresentanteEntrada } from '../lib/api'
 import type { Fornecedor, Meta, MetaRepresentante, Representante } from '../types'
 
@@ -13,9 +13,13 @@ interface Props {
   aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
 }
 
-/** Metas e representantes de um fornecedor escolhido — o valor de meta de cada representante dá pra editar direto aqui. */
+/** Uma tabela só com os representantes de um fornecedor escolhido, uma linha por representante e meta — o valor de meta muda por um diálogo com confirmação. */
 export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas, metasRepresentante, aoSalvar }: Props) {
   const [fornecedorId, setFornecedorId] = useState(fornecedores[0]?.id ?? '')
+  const [editando, setEditando] = useState<{ representante: Representante; meta: Meta } | null>(null)
+
+  const atribuicaoDe = (representanteId: string, metaId: string) =>
+    metasRepresentante.find((mv) => mv.representante.id === representanteId && mv.meta.id === metaId) ?? null
 
   const metasDoFornecedor = useMemo(
     () =>
@@ -26,7 +30,10 @@ export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas
   )
 
   const representantesDoFornecedor = useMemo(
-    () => representantes.filter((v) => v.fornecedores.some((f) => f.id === fornecedorId)),
+    () =>
+      representantes
+        .filter((v) => v.fornecedores.some((f) => f.id === fornecedorId))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
     [representantes, fornecedorId],
   )
 
@@ -51,87 +58,60 @@ export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas
         </select>
       </div>
 
-      <div className="meta-card">
-        <div className="meta-card-head">
-          <h3>Metas de {fornecedor?.nome ?? '—'}</h3>
-          <span className="meta-badge">{metasDoFornecedor.length} meta(s)</span>
+      {!metasDoFornecedor.length ? (
+        <div className="table-wrap">
+          <EstadoVazio
+            titulo={`Nenhuma meta pra ${fornecedor?.nome ?? 'esse fornecedor'}`}
+            texto="Cadastre uma meta pra esse fornecedor pra poder atribuir valores aos representantes."
+          />
         </div>
-        <div className="table-scroll">
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Meta</th>
-                  <th>Unidade</th>
-                </tr>
-              </thead>
-              <tbody>
-                {metasDoFornecedor.map((m) => (
-                  <tr key={m.id}>
-                    <td className="cell-material">{m.nome}</td>
-                    <td>{ROTULO_UNIDADE_META[m.unidade]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {!metasDoFornecedor.length ? (
-              <EstadoVazio titulo="Nenhuma meta pra esse fornecedor" texto="Cadastre uma meta pra esse fornecedor." />
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      <h3 className="consulta-subtitulo">Representantes</h3>
-
-      {!representantesDoFornecedor.length ? (
+      ) : !representantesDoFornecedor.length ? (
         <div className="table-wrap">
           <EstadoVazio
             titulo="Nenhum representante pra esse fornecedor"
             texto="Nenhum representante trabalha pra esse fornecedor ainda."
           />
         </div>
-      ) : !metasDoFornecedor.length ? (
-        <p className="hint">Cadastre uma meta pra esse fornecedor pra poder atribuir valores aos representantes.</p>
       ) : (
-        representantesDoFornecedor.map((v) => (
-          <div key={v.id} className="meta-card">
-            <div className="meta-card-head">
-              <h3>{v.nome}</h3>
-              <span className="meta-badge">
-                {[v.email, v.celular].filter(Boolean).join(' · ') || 'Período atual'}
-              </span>
-            </div>
-            <div className="table-scroll">
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Meta</th>
-                      <th>Unidade</th>
-                      <th className="num">Meta</th>
-                      <th className="num">Realizado</th>
-                      <th className="num">Falta</th>
-                      <th className="num">Progresso</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {metasDoFornecedor.map((meta) => (
-                      <LinhaMetaRepresentante
-                        key={`${v.id}:${meta.id}`}
-                        representanteId={v.id}
-                        meta={meta}
-                        atribuicao={metasRepresentante.find((mv) => mv.representante.id === v.id && mv.meta.id === meta.id) ?? null}
-                        aoSalvar={aoSalvar}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        ))
+        <div className="table-wrap table-wrap-compacta">
+          <table>
+            <thead>
+              <tr>
+                <th>Representante</th>
+                <th>Meta</th>
+                <th className="num">Valor da meta</th>
+                <th className="num">Realizado</th>
+                <th className="num">Falta</th>
+                <th className="num">Progresso</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {representantesDoFornecedor.flatMap((v) =>
+                metasDoFornecedor.map((meta) => (
+                  <LinhaMetaRepresentante
+                    key={`${v.id}:${meta.id}`}
+                    representanteNome={v.nome}
+                    meta={meta}
+                    atribuicao={atribuicaoDe(v.id, meta.id)}
+                    aoEditar={() => setEditando({ representante: v, meta })}
+                  />
+                )),
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
+
+      {editando ? (
+        <DialogoEditarMetaRepresentante
+          representante={editando.representante}
+          meta={editando.meta}
+          atribuicao={atribuicaoDe(editando.representante.id, editando.meta.id)}
+          aoFechar={() => setEditando(null)}
+          aoSalvar={aoSalvar}
+        />
+      ) : null}
     </div>
   )
 }
