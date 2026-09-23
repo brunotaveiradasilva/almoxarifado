@@ -15,10 +15,11 @@ export interface LinhaPdfMeta {
 interface Dados {
   representante: string
   mes: string
-  /** Um grupo por fornecedor; com um só, o título é o do card da tela. */
-  grupos: { titulo: string; linhas: LinhaPdfMeta[] }[]
+  /** Um grupo por fornecedor, com o nome dele de título; sem título quando o representante só tem um. */
+  grupos: { titulo?: string; linhas: LinhaPdfMeta[] }[]
   progressoMedio: number | null
-  totalVendido: number
+  /** null esconde o total — ele é do representante inteiro, então só vale com todos os fornecedores. */
+  totalVendido: number | null
 }
 
 const COR_TEXTO: [number, number, number] = [29, 29, 31]
@@ -84,12 +85,14 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
   if (progressoMedio !== null) {
     doc.setFontSize(9)
     doc.text('Progresso médio', margem, y)
-    doc.text('Total vendido', margem + 60, y)
+    if (totalVendido !== null) doc.text('Total vendido', margem + 60, y)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
     doc.setTextColor(...COR_TEXTO)
     doc.text(pct(progressoMedio), margem, y + 7)
-    doc.text(totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), margem + 60, y + 7)
+    if (totalVendido !== null) {
+      doc.text(totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), margem + 60, y + 7)
+    }
     doc.setFont('helvetica', 'normal')
     y += 16
   }
@@ -100,7 +103,7 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
       doc.addPage()
       y = 20
     }
-    if (grupos.length > 1) {
+    if (grupo.titulo) {
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(12)
       doc.setTextColor(...COR_TEXTO)
