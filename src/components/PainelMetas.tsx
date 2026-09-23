@@ -110,7 +110,7 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
       {primeiraCarga ? (
         <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
       ) : subaba === 'fornecedores' ? (
-        <div className="table-wrap">
+        <div className="table-wrap table-wrap-compacta">
           <table>
             <thead>
               <tr>
@@ -137,7 +137,7 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           ) : null}
         </div>
       ) : subaba === 'representantes' ? (
-        <div className="table-wrap">
+        <div className="table-wrap table-wrap-compacta">
           <table>
             <thead>
               <tr>
@@ -164,7 +164,7 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           ) : null}
         </div>
       ) : subaba === 'metas' ? (
-        <div className="table-wrap">
+        <div className="table-wrap table-wrap-compacta">
           <table>
             <thead>
               <tr>

@@ -295,6 +295,9 @@
   }
   table { width: 100%; border-collapse: collapse; min-width: 1180px; }
   thead th:first-child, tbody td:first-child { min-width: 230px; }
+  /* Tabelas de cadastro com poucas colunas: cabem na largura da tela, sem rolagem lateral. */
+  .table-wrap-compacta table { min-width: 0; }
+  .table-wrap-compacta thead th:first-child, .table-wrap-compacta tbody td:first-child { min-width: 0; }
   thead th {
     text-align: left; font-weight: 400;
     font-size: 12px; color: var(--ink-3); padding: 16px 20px;
