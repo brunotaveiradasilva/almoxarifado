@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { BotoesOrdemMeta } from './BotoesOrdemMeta'
+import { DialogoExportarPdf } from './DialogoExportarPdf'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { rotuloMesCurto } from '../lib/mes'
@@ -43,6 +44,7 @@ export function ConsultaMetasPorRepresentante({
 }: Props) {
   const [representanteId, setRepresentanteId] = useState(representantes[0]?.id ?? '')
   const [gerandoPdf, setGerandoPdf] = useState(false)
+  const [escolhendoFornecedores, setEscolhendoFornecedores] = useState(false)
   const representante = representantes.find((v) => v.id === representanteId) ?? null
   const mesesComDados = useMemo(() => [...new Set(metasRepresentante.map((mv) => mv.mes))], [metasRepresentante])
 
@@ -83,18 +85,32 @@ export function ConsultaMetasPorRepresentante({
     : null
   const totalVendido = totaisVendidos.find((t) => t.representanteId === representanteId && t.mes === mes)?.total ?? 0
 
-  async function exportarPdf() {
+  /** Com mais de um fornecedor, pergunta quais entram no relatório; com um só, gera direto. */
+  function clicarExportar() {
+    if (separarPorFornecedor) setEscolhendoFornecedores(true)
+    else exportarPdf(null)
+  }
+
+  /** `fornecedorIds` null = todos. */
+  async function exportarPdf(fornecedorIds: string[] | null) {
     if (!representante) return
+    const escolhidos = fornecedorIds ? grupos.filter((g) => fornecedorIds.includes(g.fornecedor.id)) : grupos
+    const todos = escolhidos.length === grupos.length
+    const linhasEscolhidas = escolhidos.flatMap((g) => g.linhas)
+    const comMetaEscolhidas = linhasEscolhidas.filter((l) => l.percentual !== null)
     setGerandoPdf(true)
     try {
       await exportarPdfMetasRepresentante({
         representante: representante.nome,
         mes,
         grupos: separarPorFornecedor
-          ? grupos.map((g) => ({ titulo: g.fornecedor.nome, linhas: g.linhas }))
-          : [{ titulo: `Metas de ${representante.nome}`, linhas }],
-        progressoMedio,
-        totalVendido,
+          ? escolhidos.map((g) => ({ titulo: g.fornecedor.nome, linhas: g.linhas }))
+          : [{ linhas }],
+        progressoMedio: comMetaEscolhidas.length
+          ? comMetaEscolhidas.reduce((soma, l) => soma + Math.min(l.percentual!, 100), 0) / comMetaEscolhidas.length
+          : null,
+        // O total vendido é do representante inteiro, não dá pra separar por fornecedor.
+        totalVendido: todos ? totalVendido : null,
       })
     } catch {
       window.alert('Não deu pra gerar o PDF. Tente de novo.')
@@ -121,7 +137,7 @@ export function ConsultaMetasPorRepresentante({
           </select>
         </div>
         <SeletorMes id="cv-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={aoMudarMes} />
-        <button className="btn consulta-exportar" disabled={!linhas.length || gerandoPdf} onClick={exportarPdf}>
+        <button className="btn consulta-exportar" disabled={!linhas.length || gerandoPdf} onClick={clicarExportar}>
           {gerandoPdf ? 'Gerando PDF…' : 'Exportar PDF'}
         </button>
       </div>
@@ -155,6 +171,14 @@ export function ConsultaMetasPorRepresentante({
           aoTrocarOrdem={aoTrocarOrdem}
         />
       )}
+
+      {escolhendoFornecedores ? (
+        <DialogoExportarPdf
+          fornecedores={grupos.map((g) => g.fornecedor)}
+          aoFechar={() => setEscolhendoFornecedores(false)}
+          aoExportar={exportarPdf}
+        />
+      ) : null}
     </div>
   )
 }
