@@ -16,7 +16,7 @@ interface Props {
 export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, aoEditar }: Props) {
   const metaNum = atribuicao?.valorMeta ?? 0
   const realizadoNum = atribuicao?.valorRealizado ?? 0
-  const falta = metaNum - realizadoNum
+  const falta = Math.max(0, metaNum - realizadoNum)
   const formatar = (n: number) => formatarValorMeta(n, meta.unidade)
   const percentual = metaNum > 0 ? (realizadoNum / metaNum) * 100 : null
 
