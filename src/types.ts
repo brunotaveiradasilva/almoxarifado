@@ -64,13 +64,24 @@ export interface Meta {
   cnpjAdsFornecedor: string
 }
 
-/** O valor de uma meta atribuído a um representante específico: quanto ele precisa bater e quanto já bateu. */
+/** O valor de uma meta atribuído a um representante num mês: quanto ele precisa bater e quanto já bateu. */
 export interface MetaRepresentante {
   id: string
   representante: Representante
   meta: Meta
+  /** Mês de referência, "2026-09" — a meta pode mudar de um mês pro outro. */
+  mes: string
   valorMeta: number
+  /** Só chega pela sincronização com a ADS; não é editável. */
   valorRealizado: number
+}
+
+/** Tudo que um representante vendeu num mês, de todos os fornecedores (card "Total vendido"). */
+export interface TotalVendidoMensal {
+  id: string
+  representanteId: string
+  mes: string
+  total: number
 }
 
 export interface Dados {

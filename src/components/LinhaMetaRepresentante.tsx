@@ -5,7 +5,8 @@ interface Props {
   representanteNome: string
   meta: Meta
   atribuicao: MetaRepresentante | null
-  aoEditar: () => void
+  /** null em mês fechado: a linha fica só pra consulta, sem o botão Editar. */
+  aoEditar: (() => void) | null
 }
 
 const formatar = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
@@ -44,11 +45,13 @@ export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, ao
         </div>
       </td>
       <td className="actions-cell">
-        <div className="row-actions">
-          <button className="btn btn-sm btn-ghost" onClick={aoEditar}>
-            Editar
-          </button>
-        </div>
+        {aoEditar ? (
+          <div className="row-actions">
+            <button className="btn btn-sm btn-ghost" onClick={aoEditar}>
+              Editar
+            </button>
+          </div>
+        ) : null}
       </td>
     </tr>
   )

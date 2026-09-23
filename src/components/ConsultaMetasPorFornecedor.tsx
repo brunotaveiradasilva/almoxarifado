@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
+import { DialogoCopiarMetasMes } from './DialogoCopiarMetasMes'
 import { DialogoEditarMetaRepresentante } from './DialogoEditarMetaRepresentante'
 import { LinhaMetaRepresentante } from './LinhaMetaRepresentante'
+import { SeletorMes } from './SeletorMes'
+import { mesFechado, rotuloMes, rotuloMesCurto, somarMeses } from '../lib/mes'
 import type { MetaRepresentanteEntrada } from '../lib/api'
 import type { Fornecedor, Meta, MetaRepresentante, Representante } from '../types'
 
@@ -10,16 +13,39 @@ interface Props {
   representantes: Representante[]
   metas: Meta[]
   metasRepresentante: MetaRepresentante[]
+  mes: string
+  aoMudarMes: (mes: string) => void
   aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
+  aoCopiarMes: (de: string, para: string, fornecedorId?: string) => Promise<number>
 }
 
-/** Uma tabela só com os representantes de um fornecedor escolhido, uma linha por representante e meta — o valor de meta muda por um diálogo com confirmação. */
-export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas, metasRepresentante, aoSalvar }: Props) {
+/**
+ * Uma tabela só com os representantes de um fornecedor escolhido no mês escolhido, uma linha por
+ * representante e meta — o valor de meta muda por um diálogo com confirmação, e dá pra trazer os
+ * valores do mês anterior de uma vez.
+ */
+export function ConsultaMetasPorFornecedor({
+  fornecedores,
+  representantes,
+  metas,
+  metasRepresentante,
+  mes,
+  aoMudarMes,
+  aoSalvar,
+  aoCopiarMes,
+}: Props) {
   const [fornecedorId, setFornecedorId] = useState(fornecedores[0]?.id ?? '')
   const [editando, setEditando] = useState<{ representante: Representante; meta: Meta } | null>(null)
+  const [copiando, setCopiando] = useState(false)
 
-  const atribuicaoDe = (representanteId: string, metaId: string) =>
-    metasRepresentante.find((mv) => mv.representante.id === representanteId && mv.meta.id === metaId) ?? null
+  const mesAnterior = somarMeses(mes, -1)
+  const fechado = mesFechado(mes)
+  const mesesComDados = useMemo(() => [...new Set(metasRepresentante.map((mv) => mv.mes))], [metasRepresentante])
+
+  const atribuicaoDe = (representanteId: string, metaId: string, noMes = mes) =>
+    metasRepresentante.find(
+      (mv) => mv.representante.id === representanteId && mv.meta.id === metaId && mv.mes === noMes,
+    ) ?? null
 
   const metasDoFornecedor = useMemo(
     () =>
@@ -37,6 +63,14 @@ export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas
     [representantes, fornecedorId],
   )
 
+  // O que dá pra trazer do mês anterior: tem valor lá e ainda não tem neste mês (a API só copia isso).
+  const paraCopiar = metasRepresentante.filter(
+    (mv) =>
+      mv.mes === mesAnterior &&
+      mv.meta.fornecedor.id === fornecedorId &&
+      !atribuicaoDe(mv.representante.id, mv.meta.id),
+  ).length
+
   const fornecedor = fornecedores.find((f) => f.id === fornecedorId) ?? null
 
   if (!fornecedores.length) {
@@ -47,16 +81,32 @@ export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas
 
   return (
     <div>
-      <div className="field consulta-filtro">
-        <label htmlFor="cf-fornecedor">Fornecedor</label>
-        <select id="cf-fornecedor" value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)}>
-          {fornecedores.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.nome}
-            </option>
-          ))}
-        </select>
+      <div className="consulta-filtros">
+        <div className="field consulta-filtro">
+          <label htmlFor="cf-fornecedor">Fornecedor</label>
+          <select id="cf-fornecedor" value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)}>
+            {fornecedores.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <SeletorMes id="cf-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={aoMudarMes} />
       </div>
+
+      {fechado ? (
+        <p className="hint consulta-info">
+          {rotuloMesCurto(mes)} já fechou — as metas desse mês ficam só pra consulta.
+        </p>
+      ) : paraCopiar > 0 && representantesDoFornecedor.length ? (
+        <div className="consulta-acoes">
+          <button className="btn" onClick={() => setCopiando(true)}>
+            Copiar metas de {rotuloMes(mesAnterior)}
+          </button>
+          <span className="hint">{paraCopiar} meta(s) de lá ainda sem valor neste mês</span>
+        </div>
+      ) : null}
 
       {!metasDoFornecedor.length ? (
         <div className="table-wrap">
@@ -94,7 +144,7 @@ export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas
                     representanteNome={v.nome}
                     meta={meta}
                     atribuicao={atribuicaoDe(v.id, meta.id)}
-                    aoEditar={() => setEditando({ representante: v, meta })}
+                    aoEditar={fechado ? null : () => setEditando({ representante: v, meta })}
                   />
                 )),
               )}
@@ -107,9 +157,21 @@ export function ConsultaMetasPorFornecedor({ fornecedores, representantes, metas
         <DialogoEditarMetaRepresentante
           representante={editando.representante}
           meta={editando.meta}
+          mes={mes}
           atribuicao={atribuicaoDe(editando.representante.id, editando.meta.id)}
           aoFechar={() => setEditando(null)}
           aoSalvar={aoSalvar}
+        />
+      ) : null}
+
+      {copiando && fornecedor ? (
+        <DialogoCopiarMetasMes
+          de={mesAnterior}
+          para={mes}
+          fornecedorNome={fornecedor.nome}
+          quantidade={paraCopiar}
+          aoCopiar={() => aoCopiarMes(mesAnterior, mes, fornecedor.id)}
+          aoFechar={() => setCopiando(false)}
         />
       ) : null}
     </div>

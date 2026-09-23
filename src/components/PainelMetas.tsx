@@ -9,6 +9,7 @@ import { TabelaMetas } from './TabelaMetas'
 import { FormularioMeta } from './FormularioMeta'
 import { ConsultaMetasPorRepresentante } from './ConsultaMetasPorRepresentante'
 import { ConsultaMetasPorFornecedor } from './ConsultaMetasPorFornecedor'
+import { mesAtual } from '../lib/mes'
 import type { Fornecedor, Meta, Representante } from '../types'
 
 export type SubabaMetas = 'fornecedores' | 'representantes' | 'metas' | 'porRepresentante' | 'porFornecedor'
@@ -30,6 +31,8 @@ interface Props {
 /** A navegação entre as subabas fica no menu lateral; as abas daqui só aparecem no celular, onde o menu vira só ícones. */
 export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
   const metas = useMetas()
+  // Mês escolhido nas telas de consulta — o mesmo nas duas, e é o que o "Sincronizar com a ADS" recalcula.
+  const [mes, setMes] = useState(mesAtual)
 
   const [dialogoFornecedor, setDialogoFornecedor] = useState<{ aberto: boolean; fornecedor: Fornecedor | null }>({
     aberto: false,
@@ -84,7 +87,7 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           </button>
         ) : null}
         {subaba === 'porRepresentante' || subaba === 'porFornecedor' ? (
-          <button className="btn" disabled={metas.sincronizando} onClick={metas.sincronizarComAds}>
+          <button className="btn" disabled={metas.sincronizando} onClick={() => metas.sincronizarComAds(mes)}>
             {metas.sincronizando ? 'Sincronizando…' : 'Sincronizar com a ADS'}
           </button>
         ) : null}
@@ -190,14 +193,24 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           ) : null}
         </div>
       ) : subaba === 'porRepresentante' ? (
-        <ConsultaMetasPorRepresentante representantes={metas.representantes} metas={metas.metas} metasRepresentante={metas.metasRepresentante} />
+        <ConsultaMetasPorRepresentante
+          representantes={metas.representantes}
+          metas={metas.metas}
+          metasRepresentante={metas.metasRepresentante}
+          totaisVendidos={metas.totaisVendidos}
+          mes={mes}
+          aoMudarMes={setMes}
+        />
       ) : (
         <ConsultaMetasPorFornecedor
           fornecedores={metas.fornecedores}
           representantes={metas.representantes}
           metas={metas.metas}
           metasRepresentante={metas.metasRepresentante}
+          mes={mes}
+          aoMudarMes={setMes}
           aoSalvar={metas.salvarMetaRepresentante}
+          aoCopiarMes={metas.copiarMetasDoMes}
         />
       )}
 

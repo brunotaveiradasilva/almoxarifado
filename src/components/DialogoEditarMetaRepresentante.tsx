@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { Modal } from './Modal'
+import { rotuloMes } from '../lib/mes'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { MetaRepresentanteEntrada } from '../lib/api'
+import { ErroApi, type MetaRepresentanteEntrada } from '../lib/api'
 import type { Meta, MetaRepresentante, Representante } from '../types'
 
 interface Props {
   representante: Representante
   meta: Meta
+  /** Mês ("2026-09") em que o valor vale. */
+  mes: string
   atribuicao: MetaRepresentante | null
   aoFechar: () => void
   aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
@@ -15,7 +18,7 @@ interface Props {
 const formatar = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
 
 /** Troca o valor da meta de um representante em três passos: digitar o valor, confirmar a mudança e ver que deu certo. */
-export function DialogoEditarMetaRepresentante({ representante, meta, atribuicao, aoFechar, aoSalvar }: Props) {
+export function DialogoEditarMetaRepresentante({ representante, meta, mes, atribuicao, aoFechar, aoSalvar }: Props) {
   const valorAtual = atribuicao?.valorMeta ?? 0
   const [passo, setPasso] = useState<'editar' | 'confirmar' | 'sucesso'>('editar')
   const [valor, setValor] = useState(atribuicao ? String(atribuicao.valorMeta) : '')
@@ -36,19 +39,11 @@ export function DialogoEditarMetaRepresentante({ representante, meta, atribuicao
     setSalvando(true)
     setErro('')
     try {
-      // O Realizado vai junto só porque a API pede o registro inteiro — reenvia o valor que ela mesma mandou.
-      await aoSalvar(
-        {
-          representanteId: representante.id,
-          metaId: meta.id,
-          valorMeta: valorNum,
-          valorRealizado: atribuicao?.valorRealizado ?? 0,
-        },
-        atribuicao?.id,
-      )
+      await aoSalvar({ representanteId: representante.id, metaId: meta.id, mes, valorMeta: valorNum }, atribuicao?.id)
       setPasso('sucesso')
-    } catch {
-      setErro('Não foi possível salvar. Tente de novo.')
+    } catch (e) {
+      // Ex.: o mês fechou com a tela aberta — a API explica o motivo.
+      setErro(e instanceof ErroApi ? e.message : 'Não foi possível salvar. Tente de novo.')
     } finally {
       setSalvando(false)
     }
@@ -56,7 +51,7 @@ export function DialogoEditarMetaRepresentante({ representante, meta, atribuicao
 
   const descricao = (
     <>
-      <strong>{representante.nome}</strong> · {meta.nome} ({ROTULO_UNIDADE_META[meta.unidade]})
+      <strong>{representante.nome}</strong> · {meta.nome} ({ROTULO_UNIDADE_META[meta.unidade]}) em {rotuloMes(mes)}
     </>
   )
 

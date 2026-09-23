@@ -1,18 +1,31 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
+import { SeletorMes } from './SeletorMes'
+import { rotuloMes, rotuloMesCurto } from '../lib/mes'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
-import type { Meta, MetaRepresentante, Representante } from '../types'
+import type { Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
 
 interface Props {
   representantes: Representante[]
   metas: Meta[]
   metasRepresentante: MetaRepresentante[]
+  totaisVendidos: TotalVendidoMensal[]
+  mes: string
+  aoMudarMes: (mes: string) => void
 }
 
-/** Só visualização: metas de todos os fornecedores para quem o representante escolhido trabalha. Editar é na tela "Meta Fornecedor". */
-export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepresentante }: Props) {
+/** Só visualização: metas do mês escolhido, de todos os fornecedores para quem o representante trabalha. Editar é na tela "Meta Fornecedor". */
+export function ConsultaMetasPorRepresentante({
+  representantes,
+  metas,
+  metasRepresentante,
+  totaisVendidos,
+  mes,
+  aoMudarMes,
+}: Props) {
   const [representanteId, setRepresentanteId] = useState(representantes[0]?.id ?? '')
   const representante = representantes.find((v) => v.id === representanteId) ?? null
+  const mesesComDados = useMemo(() => [...new Set(metasRepresentante.map((mv) => mv.mes))], [metasRepresentante])
 
   const linhas = useMemo(() => {
     if (!representante) return []
@@ -22,20 +35,22 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true }))
       .map((meta) => {
         const atribuicao =
-          metasRepresentante.find((mv) => mv.representante.id === representanteId && mv.meta.id === meta.id) ?? null
+          metasRepresentante.find(
+            (mv) => mv.representante.id === representanteId && mv.meta.id === meta.id && mv.mes === mes,
+          ) ?? null
         const valorMeta = atribuicao?.valorMeta ?? 0
         const valorRealizado = atribuicao?.valorRealizado ?? 0
         const falta = valorMeta - valorRealizado
         const percentual = valorMeta > 0 ? (valorRealizado / valorMeta) * 100 : null
         return { meta, atribuicao, valorMeta, valorRealizado, falta, percentual }
       })
-  }, [representante, metas, metasRepresentante, representanteId])
+  }, [representante, metas, metasRepresentante, representanteId, mes])
 
   const comMeta = linhas.filter((l) => l.percentual !== null)
   const progressoMedio = comMeta.length
     ? comMeta.reduce((soma, l) => soma + Math.min(l.percentual!, 100), 0) / comMeta.length
     : null
-  const totalVendido = representante?.totalVendidoAds ?? 0
+  const totalVendido = totaisVendidos.find((t) => t.representanteId === representanteId && t.mes === mes)?.total ?? 0
 
   if (!representantes.length) {
     return <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre um representante pra consultar as metas dele." />
@@ -43,15 +58,18 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
 
   return (
     <div>
-      <div className="field consulta-filtro">
-        <label htmlFor="cv-representante">Representante</label>
-        <select id="cv-representante" value={representanteId} onChange={(e) => setRepresentanteId(e.target.value)}>
-          {representantes.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.nome}
-            </option>
-          ))}
-        </select>
+      <div className="consulta-filtros">
+        <div className="field consulta-filtro">
+          <label htmlFor="cv-representante">Representante</label>
+          <select id="cv-representante" value={representanteId} onChange={(e) => setRepresentanteId(e.target.value)}>
+            {representantes.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <SeletorMes id="cv-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={aoMudarMes} />
       </div>
 
       {representante ? (
@@ -76,7 +94,7 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
             <span className="value">
               {totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </span>
-            <span className="note">tudo vendido no mês, todos os fornecedores</span>
+            <span className="note">tudo vendido em {rotuloMes(mes)}, todos os fornecedores</span>
           </div>
         </div>
       ) : null}
@@ -84,7 +102,7 @@ export function ConsultaMetasPorRepresentante({ representantes, metas, metasRepr
       <div className="meta-card">
         <div className="meta-card-head">
           <h3>Metas de {representante?.nome ?? '—'}</h3>
-          <span className="meta-badge">Período atual</span>
+          <span className="meta-badge">{rotuloMesCurto(mes)}</span>
         </div>
 
         <div className="table-scroll">
