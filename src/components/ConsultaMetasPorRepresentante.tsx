@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { rotuloMes, rotuloMesCurto } from '../lib/mes'
-import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
+import { ROTULO_UNIDADE_META, formatarValorMeta } from '../lib/unidadeMeta'
 import type { Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
 
 interface Props {
@@ -123,9 +123,9 @@ export function ConsultaMetasPorRepresentante({
                   <tr key={meta.id}>
                     <td className="cell-material">{meta.nome}</td>
                     <td>{ROTULO_UNIDADE_META[meta.unidade]}</td>
-                    <td className="num">{atribuicao ? valorMeta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}</td>
-                    <td className="num">{atribuicao ? valorRealizado.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}</td>
-                    <td className="num">{atribuicao ? falta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}</td>
+                    <td className="num">{atribuicao ? formatarValorMeta(valorMeta, meta.unidade) : '—'}</td>
+                    <td className="num">{atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '—'}</td>
+                    <td className="num">{atribuicao ? formatarValorMeta(falta, meta.unidade) : '—'}</td>
                     <td className="num">
                       <div className="meta-progress-cell">
                         <span className="meta-progress-track">
