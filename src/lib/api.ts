@@ -201,6 +201,7 @@ export interface MetaEntrada {
   codigoAdsDivisao: string
   cnpjAdsFornecedor: string
   produtosExcluidos: string
+  produtosIncluidos: string
 }
 
 export function listarMetas(): Promise<Meta[]> {

@@ -98,8 +98,8 @@ let representantes: Representante[] = [
 ]
 
 let metas: Meta[] = [
-  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '' },
-  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '' },
+  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '' },
+  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '' },
 ]
 
 // Mês atual e o anterior, pra dar pra testar o filtro de mês e o "copiar do mês anterior".
@@ -268,6 +268,7 @@ interface MetaEntradaMock {
   codigoAdsDivisao: string
   cnpjAdsFornecedor: string
   produtosExcluidos: string
+  produtosIncluidos: string
 }
 
 export function listarMetas(): Promise<Meta[]> {
@@ -282,6 +283,7 @@ export function criarMeta(meta: MetaEntradaMock): Promise<Meta> {
     codigoAdsDivisao: meta.codigoAdsDivisao,
     cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     produtosExcluidos: meta.produtosExcluidos,
+    produtosIncluidos: meta.produtosIncluidos,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = [...metas, novo]
@@ -296,6 +298,7 @@ export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> 
     codigoAdsDivisao: meta.codigoAdsDivisao,
     cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     produtosExcluidos: meta.produtosExcluidos,
+    produtosIncluidos: meta.produtosIncluidos,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = metas.map((m) => (m.id === id ? atualizado : m))
