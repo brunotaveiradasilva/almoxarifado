@@ -3,7 +3,7 @@ import * as api from '../lib/api'
 import { ErroApi } from '../lib/api'
 import type { MetaEntrada, MetaRepresentanteEntrada, RepresentanteEntrada } from '../lib/api'
 import { idTemporario } from '../lib/idTemporario'
-import type { Fornecedor, Meta, MetaRepresentante, Representante } from '../types'
+import type { Fornecedor, Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
 
 function mensagemErro(erro: unknown): string {
   return erro instanceof ErroApi ? erro.message : 'Algo deu errado. Tente de novo.'
@@ -19,6 +19,7 @@ export function useMetas() {
   const [representantes, setRepresentantes] = useState<Representante[]>([])
   const [metas, setMetas] = useState<Meta[]>([])
   const [metasRepresentante, setMetasRepresentante] = useState<MetaRepresentante[]>([])
+  const [totaisVendidos, setTotaisVendidos] = useState<TotalVendidoMensal[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -26,17 +27,24 @@ export function useMetas() {
     setCarregando(true)
     setErro(null)
     try {
-      const [fornecedoresCarregados, representantesCarregados, metasCarregadas, metasRepresentanteCarregadas] =
-        await Promise.all([
-          api.listarFornecedores(),
-          api.listarRepresentantes(),
-          api.listarMetas(),
-          api.listarMetasRepresentante(),
-        ])
+      const [
+        fornecedoresCarregados,
+        representantesCarregados,
+        metasCarregadas,
+        metasRepresentanteCarregadas,
+        totaisCarregados,
+      ] = await Promise.all([
+        api.listarFornecedores(),
+        api.listarRepresentantes(),
+        api.listarMetas(),
+        api.listarMetasRepresentante(),
+        api.listarTotaisVendidos(),
+      ])
       setFornecedores(fornecedoresCarregados)
       setRepresentantes(representantesCarregados)
       setMetas(metasCarregadas)
       setMetasRepresentante(metasRepresentanteCarregadas)
+      setTotaisVendidos(totaisCarregados)
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
@@ -195,22 +203,19 @@ export function useMetas() {
   const [sincronizando, setSincronizando] = useState(false)
 
   /**
-   * Força agora o recálculo do realizado a partir do histórico de vendas da ADS. A API só devolve
-   * as atribuições que realmente têm representante e meta com código ADS cadastrado — as outras
-   * continuam como estavam, só mescla as que vieram atualizadas. Cada atribuição vem com o
-   * representante completo (já com o totalVendidoAds recalculado), então também atualiza a lista
-   * de representantes — senão o card "Total vendido" continua mostrando o valor antigo.
+   * Força agora o recálculo do realizado de um mês a partir do histórico de vendas da ADS. A API só
+   * devolve as atribuições que realmente têm representante e meta com código ADS cadastrado — as
+   * outras continuam como estavam, só mescla as que vieram atualizadas. O total vendido do mês é
+   * recalculado junto, então recarrega os totais — senão o card "Total vendido" fica com o valor antigo.
    */
-  const sincronizarComAds = useCallback(async () => {
+  const sincronizarComAds = useCallback(async (mes: string) => {
     setErro(null)
     setSincronizando(true)
     try {
-      const atualizadas = await api.sincronizarMetasRepresentante()
+      const atualizadas = await api.sincronizarMetasRepresentante(mes)
       const porId = new Map(atualizadas.map((m) => [m.id, m]))
       setMetasRepresentante((atual) => atual.map((m) => porId.get(m.id) ?? m))
-
-      const representantesPorId = new Map(atualizadas.map((m) => [m.representante.id, m.representante]))
-      setRepresentantes((atual) => atual.map((r) => representantesPorId.get(r.id) ?? r))
+      setTotaisVendidos(await api.listarTotaisVendidos())
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
@@ -218,11 +223,20 @@ export function useMetas() {
     }
   }, [])
 
+  /** Copia os valores de meta do mês `de` pro `para` (só o que falta no destino). Devolve quantas foram criadas; erro sobe pra quem chamou. */
+  const copiarMetasDoMes = useCallback(async (de: string, para: string, fornecedorId?: string): Promise<number> => {
+    setErro(null)
+    const criadas = await api.copiarMetasRepresentante(de, para, fornecedorId)
+    setMetasRepresentante((atual) => [...atual, ...criadas])
+    return criadas.length
+  }, [])
+
   return {
     fornecedores,
     representantes,
     metas,
     metasRepresentante,
+    totaisVendidos,
     carregando,
     erro,
     tentarNovamente: carregarTudo,
@@ -236,5 +250,6 @@ export function useMetas() {
     removerMetaRepresentante,
     sincronizarComAds,
     sincronizando,
+    copiarMetasDoMes,
   }
 }

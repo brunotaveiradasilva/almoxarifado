@@ -1,6 +1,17 @@
 import { sessaoSalva } from './auth'
 import * as mock from './apiMock'
-import type { Agendamento, Fornecedor, Material, Meta, MetaRepresentante, Role, Status, UnidadeMeta, Representante } from '../types'
+import type {
+  Agendamento,
+  Fornecedor,
+  Material,
+  Meta,
+  MetaRepresentante,
+  Role,
+  Status,
+  TotalVendidoMensal,
+  UnidadeMeta,
+  Representante,
+} from '../types'
 
 // Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
 // em produção vem do VITE_API_URL configurado no build do GitHub Pages.
@@ -211,23 +222,42 @@ export function excluirMeta(id: string): Promise<void> {
   return requisitar(`/api/metas/${id}`, { method: 'DELETE' })
 }
 
-/** Formato aceito pela API para criar/atualizar um valor de meta de representante. */
+/**
+ * Formato aceito pela API para criar/atualizar um valor de meta de representante num mês. Não tem
+ * valorRealizado: ele só chega pela sincronização com a ADS.
+ */
 export interface MetaRepresentanteEntrada {
   representanteId: string
   metaId: string
+  /** "2026-09" */
+  mes: string
   valorMeta: number
-  valorRealizado: number
 }
 
+/** Todas as atribuições, de todos os meses — as telas filtram pelo mês escolhido. */
 export function listarMetasRepresentante(): Promise<MetaRepresentante[]> {
   if (MOCK) return mock.listarMetasRepresentante()
   return requisitar('/api/metas-representante')
 }
 
-/** Força agora o recálculo do realizado a partir do histórico de vendas da ADS (o mesmo que roda sozinho todo dia). */
-export function sincronizarMetasRepresentante(): Promise<MetaRepresentante[]> {
-  if (MOCK) return mock.sincronizarMetasRepresentante()
-  return requisitar('/api/metas-representante/sincronizar', { method: 'POST' })
+export function listarTotaisVendidos(): Promise<TotalVendidoMensal[]> {
+  if (MOCK) return mock.listarTotaisVendidos()
+  return requisitar('/api/metas-representante/totais-vendidos')
+}
+
+/** Força agora o recálculo do realizado de um mês a partir do histórico de vendas da ADS (o mês atual também roda sozinho todo dia). */
+export function sincronizarMetasRepresentante(mes: string): Promise<MetaRepresentante[]> {
+  if (MOCK) return mock.sincronizarMetasRepresentante(mes)
+  return requisitar(`/api/metas-representante/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
+}
+
+/** Copia os valores de meta do mês `de` pro mês `para`, só onde o destino ainda não tem valor. Devolve as atribuições criadas. */
+export function copiarMetasRepresentante(de: string, para: string, fornecedorId?: string): Promise<MetaRepresentante[]> {
+  if (MOCK) return mock.copiarMetasRepresentante(de, para, fornecedorId)
+  return requisitar('/api/metas-representante/copiar', {
+    method: 'POST',
+    body: JSON.stringify({ de, para, fornecedorId }),
+  })
 }
 
 export function criarMetaRepresentante(mv: MetaRepresentanteEntrada): Promise<MetaRepresentante> {

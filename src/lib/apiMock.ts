@@ -1,4 +1,5 @@
 import { somarDias } from './datas'
+import { mesAtual, mesFechado, somarMeses } from './mes'
 import type {
   Agendamento,
   Fornecedor,
@@ -8,6 +9,7 @@ import type {
   Representante,
   Role,
   Status,
+  TotalVendidoMensal,
   UnidadeMeta,
 } from '../types'
 
@@ -100,9 +102,22 @@ let metas: Meta[] = [
   { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '' },
 ]
 
+// Mês atual e o anterior, pra dar pra testar o filtro de mês e o "copiar do mês anterior".
+const MES_ATUAL = mesAtual()
+const MES_ANTERIOR = somarMeses(MES_ATUAL, -1)
+
 let metasRepresentante: MetaRepresentante[] = [
-  { id: novoId('mrp'), representante: representantes[0], meta: metas[0], valorMeta: 500, valorRealizado: 320 },
-  { id: novoId('mrp'), representante: representantes[1], meta: metas[1], valorMeta: 80000, valorRealizado: 54000 },
+  { id: novoId('mrp'), representante: representantes[0], meta: metas[0], mes: MES_ATUAL, valorMeta: 500, valorRealizado: 320 },
+  { id: novoId('mrp'), representante: representantes[1], meta: metas[1], mes: MES_ATUAL, valorMeta: 80000, valorRealizado: 54000 },
+  { id: novoId('mrp'), representante: representantes[0], meta: metas[0], mes: MES_ANTERIOR, valorMeta: 450, valorRealizado: 470 },
+  { id: novoId('mrp'), representante: representantes[1], meta: metas[0], mes: MES_ANTERIOR, valorMeta: 300, valorRealizado: 210 },
+  { id: novoId('mrp'), representante: representantes[1], meta: metas[1], mes: MES_ANTERIOR, valorMeta: 75000, valorRealizado: 81200 },
+]
+
+const totaisVendidos: TotalVendidoMensal[] = [
+  { id: novoId('tvm'), representanteId: representantes[0].id, mes: MES_ATUAL, total: 98021.64 },
+  { id: novoId('tvm'), representanteId: representantes[0].id, mes: MES_ANTERIOR, total: 112430.1 },
+  { id: novoId('tvm'), representanteId: representantes[1].id, mes: MES_ANTERIOR, total: 87311.9 },
 ]
 
 export function login(usuario: string): Promise<{ token: string; usuario: string; role: Role; avatar: string | null }> {
@@ -292,36 +307,68 @@ export function excluirMeta(id: string): Promise<void> {
 interface MetaRepresentanteEntradaMock {
   representanteId: string
   metaId: string
+  mes: string
   valorMeta: number
-  valorRealizado: number
 }
 
 export function listarMetasRepresentante(): Promise<MetaRepresentante[]> {
   return Promise.resolve(metasRepresentante)
 }
 
+export function listarTotaisVendidos(): Promise<TotalVendidoMensal[]> {
+  return Promise.resolve(totaisVendidos)
+}
+
+/** Como a API: mês que já acabou não aceita mais mudança de meta. */
+function recusarSeFechado(mes: string): Promise<never> | null {
+  return mesFechado(mes) ? Promise.reject(new Error(`mock: o mês ${mes} já fechou`)) : null
+}
+
 export function criarMetaRepresentante(mv: MetaRepresentanteEntradaMock): Promise<MetaRepresentante> {
+  const fechado = recusarSeFechado(mv.mes)
+  if (fechado) return fechado
   const novo: MetaRepresentante = {
     id: novoId('mrp'),
     representante: achar(representantes, mv.representanteId),
     meta: achar(metas, mv.metaId),
+    mes: mv.mes,
     valorMeta: mv.valorMeta,
-    valorRealizado: mv.valorRealizado,
+    valorRealizado: 0,
   }
   metasRepresentante = [...metasRepresentante, novo]
   return Promise.resolve(novo)
 }
 
+/** Como a API: troca só o valor da meta, o realizado fica como está. */
 export function atualizarMetaRepresentante(id: string, mv: MetaRepresentanteEntradaMock): Promise<MetaRepresentante> {
+  const fechado = recusarSeFechado(achar(metasRepresentante, id).mes) ?? recusarSeFechado(mv.mes)
+  if (fechado) return fechado
   const atualizado: MetaRepresentante = {
-    id,
+    ...achar(metasRepresentante, id),
     representante: achar(representantes, mv.representanteId),
     meta: achar(metas, mv.metaId),
+    mes: mv.mes,
     valorMeta: mv.valorMeta,
-    valorRealizado: mv.valorRealizado,
   }
   metasRepresentante = metasRepresentante.map((m) => (m.id === id ? atualizado : m))
   return Promise.resolve(atualizado)
+}
+
+/** Como a API: copia só o que o mês de destino ainda não tem, com realizado zerado. */
+export function copiarMetasRepresentante(de: string, para: string, fornecedorId?: string): Promise<MetaRepresentante[]> {
+  const fechado = recusarSeFechado(para)
+  if (fechado) return fechado
+  const criadas = metasRepresentante
+    .filter((m) => m.mes === de && (!fornecedorId || m.meta.fornecedor.id === fornecedorId))
+    .filter(
+      (m) =>
+        !metasRepresentante.some(
+          (outra) => outra.mes === para && outra.representante.id === m.representante.id && outra.meta.id === m.meta.id,
+        ),
+    )
+    .map((m): MetaRepresentante => ({ ...m, id: novoId('mrp'), mes: para, valorRealizado: 0 }))
+  metasRepresentante = [...metasRepresentante, ...criadas]
+  return Promise.resolve(criadas)
 }
 
 export function excluirMetaRepresentante(id: string): Promise<void> {
@@ -330,6 +377,6 @@ export function excluirMetaRepresentante(id: string): Promise<void> {
 }
 
 /** No mock não tem ADS de verdade pra consultar — devolve a lista como está (nenhum representante/meta de exemplo tem código ADS cadastrado). */
-export function sincronizarMetasRepresentante(): Promise<MetaRepresentante[]> {
-  return Promise.resolve(metasRepresentante)
+export function sincronizarMetasRepresentante(mes: string): Promise<MetaRepresentante[]> {
+  return Promise.resolve(metasRepresentante.filter((m) => m.mes === mes))
 }
