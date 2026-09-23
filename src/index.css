@@ -308,7 +308,7 @@
   tbody tr:last-child td { border-bottom: 0; }
   tbody tr { transition: background .15s ease; cursor: pointer; }
   tbody tr:hover { background: var(--surface-2); }
-  td.num, th.num { font-variant-numeric: tabular-nums; }
+  td.num, th.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cell-material { font-weight: 500; font-size: 15px; letter-spacing: -.015em; }
   .cell-code { font-size: 12px; color: var(--ink-3); display: block; font-weight: 400; letter-spacing: 0; margin-top: 3px; }
   .cell-obs { color: var(--ink-2); max-width: 30ch; }

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { rotuloMes, rotuloMesCurto } from '../lib/mes'
-import { ROTULO_UNIDADE_META, formatarValorMeta } from '../lib/unidadeMeta'
+import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
 
 interface Props {
@@ -111,7 +111,6 @@ export function ConsultaMetasPorRepresentante({
               <thead>
                 <tr>
                   <th>Meta</th>
-                  <th>Unidade</th>
                   <th className="num">Meta</th>
                   <th className="num">Realizado</th>
                   <th className="num">Falta</th>
@@ -122,7 +121,6 @@ export function ConsultaMetasPorRepresentante({
                 {linhas.map(({ meta, atribuicao, valorMeta, valorRealizado, falta, percentual }) => (
                   <tr key={meta.id}>
                     <td className="cell-material">{meta.nome}</td>
-                    <td>{ROTULO_UNIDADE_META[meta.unidade]}</td>
                     <td className="num">{atribuicao ? formatarValorMeta(valorMeta, meta.unidade) : '—'}</td>
                     <td className="num">{atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '—'}</td>
                     <td className="num">{atribuicao ? formatarValorMeta(falta, meta.unidade) : '—'}</td>
