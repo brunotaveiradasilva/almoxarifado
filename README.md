@@ -1,6 +1,6 @@
-# Almoxarifado em Agenda
+# SulHub
 
-Controle de retirada e devolução de materiais: cadastro dos itens, agendamento por período, responsável, cliente e marcação automática de atrasos. Front-end em React, TypeScript e Vite; os dados ficam num banco de verdade, servidos pela [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api) (Java), para acessar de qualquer computador.
+Sistema de gestão: controle de retirada e devolução de materiais (cadastro dos itens, agendamento por período, responsável, cliente e marcação automática de atrasos), metas por fornecedor e representante, e checklist. Front-end em React, TypeScript e Vite; os dados ficam num banco de verdade, servidos pela [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api) (Java), para acessar de qualquer computador.
 
 ![Tela de agendamentos](docs/agendamentos.png)
 
