@@ -80,6 +80,8 @@ export interface MetaRepresentante {
   valorMeta: number
   /** Só chega pela sincronização com a ADS; não é editável. */
   valorRealizado: number
+  /** Só em metas KG: quanto o realizado deu em R$. Null nas outras unidades e antes de sincronizar. */
+  realizadoEmReais: number | null
 }
 
 /** Tudo que um representante vendeu num mês, de todos os fornecedores (card "Total vendido"). */

@@ -100,6 +100,7 @@ let representantes: Representante[] = [
 let metas: Meta[] = [
   { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 0 },
   { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 1 },
+  { id: novoId('met'), nome: 'Ração Premium', fornecedor: fornecedores[0], unidade: 'KG', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 2 },
 ]
 
 // Mês atual e o anterior, pra dar pra testar o filtro de mês e o "copiar do mês anterior".
@@ -107,11 +108,12 @@ const MES_ATUAL = mesAtual()
 const MES_ANTERIOR = somarMeses(MES_ATUAL, -1)
 
 let metasRepresentante: MetaRepresentante[] = [
-  { id: novoId('mrp'), representante: representantes[0], meta: metas[0], mes: MES_ATUAL, valorMeta: 500, valorRealizado: 320 },
-  { id: novoId('mrp'), representante: representantes[1], meta: metas[1], mes: MES_ATUAL, valorMeta: 80000, valorRealizado: 54000 },
-  { id: novoId('mrp'), representante: representantes[0], meta: metas[0], mes: MES_ANTERIOR, valorMeta: 450, valorRealizado: 470 },
-  { id: novoId('mrp'), representante: representantes[1], meta: metas[0], mes: MES_ANTERIOR, valorMeta: 300, valorRealizado: 210 },
-  { id: novoId('mrp'), representante: representantes[1], meta: metas[1], mes: MES_ANTERIOR, valorMeta: 75000, valorRealizado: 81200 },
+  { id: novoId('mrp'), representante: representantes[0], meta: metas[0], mes: MES_ATUAL, valorMeta: 500, valorRealizado: 320, realizadoEmReais: null },
+  { id: novoId('mrp'), representante: representantes[1], meta: metas[1], mes: MES_ATUAL, valorMeta: 80000, valorRealizado: 54000, realizadoEmReais: null },
+  { id: novoId('mrp'), representante: representantes[1], meta: metas[2], mes: MES_ATUAL, valorMeta: 34000, valorRealizado: 12480.5, realizadoEmReais: 61250.9 },
+  { id: novoId('mrp'), representante: representantes[0], meta: metas[0], mes: MES_ANTERIOR, valorMeta: 450, valorRealizado: 470, realizadoEmReais: null },
+  { id: novoId('mrp'), representante: representantes[1], meta: metas[0], mes: MES_ANTERIOR, valorMeta: 300, valorRealizado: 210, realizadoEmReais: null },
+  { id: novoId('mrp'), representante: representantes[1], meta: metas[1], mes: MES_ANTERIOR, valorMeta: 75000, valorRealizado: 81200, realizadoEmReais: null },
 ]
 
 const totaisVendidos: TotalVendidoMensal[] = [
@@ -350,6 +352,7 @@ export function criarMetaRepresentante(mv: MetaRepresentanteEntradaMock): Promis
     mes: mv.mes,
     valorMeta: mv.valorMeta,
     valorRealizado: 0,
+    realizadoEmReais: null,
   }
   metasRepresentante = [...metasRepresentante, novo]
   return Promise.resolve(novo)
@@ -382,7 +385,7 @@ export function copiarMetasRepresentante(de: string, para: string, fornecedorId?
           (outra) => outra.mes === para && outra.representante.id === m.representante.id && outra.meta.id === m.meta.id,
         ),
     )
-    .map((m): MetaRepresentante => ({ ...m, id: novoId('mrp'), mes: para, valorRealizado: 0 }))
+    .map((m): MetaRepresentante => ({ ...m, id: novoId('mrp'), mes: para, valorRealizado: 0, realizadoEmReais: null }))
   metasRepresentante = [...metasRepresentante, ...criadas]
   return Promise.resolve(criadas)
 }
@@ -394,5 +397,6 @@ export function excluirMetaRepresentante(id: string): Promise<void> {
 
 /** No mock não tem ADS de verdade pra consultar — devolve a lista como está (nenhum representante/meta de exemplo tem código ADS cadastrado). */
 export function sincronizarMetasRepresentante(mes: string): Promise<MetaRepresentante[]> {
-  return Promise.resolve(metasRepresentante.filter((m) => m.mes === mes))
+  // Demora um pouco, como a ADS de verdade, pra dar pra ver o carregamento da tela.
+  return new Promise((ok) => setTimeout(() => ok(metasRepresentante.filter((m) => m.mes === mes)), 1500))
 }
