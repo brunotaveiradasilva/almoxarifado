@@ -168,6 +168,33 @@ export function useMetas() {
     })
   }, [metas])
 
+  /**
+   * Troca duas metas de lugar na ordem e grava a ordem nova na API. Recebe a vizinha em vez de uma
+   * direção porque cada tela mostra uma parte da lista (ex: só os fornecedores do representante) —
+   * quem a pessoa vê em cima ou embaixo nem sempre é a vizinha na lista inteira.
+   */
+  const trocarOrdemMetas = useCallback(
+    (id: string, outroId: string) => {
+      const i = metas.findIndex((m) => m.id === id)
+      const j = metas.findIndex((m) => m.id === outroId)
+      if (i < 0 || j < 0 || i === j) return
+
+      setErro(null)
+      const anterior = metas
+      const reordenadas = [...metas]
+      ;[reordenadas[i], reordenadas[j]] = [reordenadas[j], reordenadas[i]]
+      setMetas(reordenadas)
+      api
+        .ordenarMetas(reordenadas.map((m) => m.id))
+        .then(setMetas)
+        .catch((e) => {
+          setErro(mensagemErro(e))
+          setMetas(anterior)
+        })
+    },
+    [metas],
+  )
+
   /** Cria (id null/undefined) ou atualiza (id preenchido) o valor de meta de um representante. */
   const salvarMetaRepresentante = useCallback(
     (mv: MetaRepresentanteEntrada, id?: string | null): Promise<MetaRepresentante> => {
@@ -246,6 +273,7 @@ export function useMetas() {
     removerRepresentante,
     salvarMeta,
     removerMeta,
+    trocarOrdemMetas,
     salvarMetaRepresentante,
     removerMetaRepresentante,
     sincronizarComAds,

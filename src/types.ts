@@ -66,6 +66,8 @@ export interface Meta {
   produtosExcluidos: string | null
   /** Se preenchido, só esses produtos contam pra meta — mesmo formato de produtosExcluidos. Null em metas antigas. */
   produtosIncluidos: string | null
+  /** Posição nas listas da tela (0 primeiro). A API já devolve as metas nessa ordem; null em metas antigas, que vão pro fim. */
+  ordem: number | null
 }
 
 /** O valor de uma meta atribuído a um representante num mês: quanto ele precisa bater e quanto já bateu. */

@@ -47,13 +47,8 @@ export function ConsultaMetasPorFornecedor({
       (mv) => mv.representante.id === representanteId && mv.meta.id === metaId && mv.mes === noMes,
     ) ?? null
 
-  const metasDoFornecedor = useMemo(
-    () =>
-      metas
-        .filter((m) => m.fornecedor.id === fornecedorId)
-        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true })),
-    [metas, fornecedorId],
-  )
+  // Na ordem que o admin escolheu na aba Metas (a API já devolve assim).
+  const metasDoFornecedor = useMemo(() => metas.filter((m) => m.fornecedor.id === fornecedorId), [metas, fornecedorId])
 
   const representantesDoFornecedor = useMemo(
     () =>
