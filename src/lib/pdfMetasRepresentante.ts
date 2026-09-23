@@ -1,6 +1,7 @@
 import { rotuloMes, rotuloMesCurto } from './mes'
 import { formatarValorMeta } from './unidadeMeta'
 import type { MetaRepresentante, Meta } from '../types'
+import urlLogo from '../assets/logo-sulbiologic.png'
 
 export interface LinhaPdfMeta {
   meta: Meta
@@ -26,6 +27,22 @@ const COR_TRILHA: [number, number, number] = [229, 229, 234]
 const COR_BARRA: [number, number, number] = [0, 113, 227]
 const COR_COMPLETA: [number, number, number] = [52, 168, 83]
 
+/** Passa o logo por um canvas: o PNG original é entrelaçado, e o jsPDF lida melhor com a versão redesenhada. */
+function carregarLogo(): Promise<{ dados: string; proporcao: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      canvas.getContext('2d')!.drawImage(img, 0, 0)
+      resolve({ dados: canvas.toDataURL('image/png'), proporcao: img.naturalHeight / img.naturalWidth })
+    }
+    img.onerror = reject
+    img.src = urlLogo
+  })
+}
+
 const pct = (n: number) => `${n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`
 
 /**
@@ -33,29 +50,37 @@ const pct = (n: number) => `${n.toLocaleString('pt-BR', { maximumFractionDigits:
  * As bibliotecas de PDF só carregam no clique, pra não pesar a abertura do sistema.
  */
 export async function exportarPdfMetasRepresentante({ representante, mes, grupos, progressoMedio, totalVendido }: Dados) {
-  const [{ jsPDF }, { autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
+  const [{ jsPDF }, { autoTable }, logo] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+    carregarLogo(),
+  ])
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const margem = 14
   const largura = doc.internal.pageSize.getWidth()
 
+  const larguraLogo = 50
+  const alturaLogo = larguraLogo * logo.proporcao
+  doc.addImage(logo.dados, 'PNG', margem, 10, larguraLogo, alturaLogo)
+
   doc.setTextColor(...COR_SUAVE)
   doc.setFontSize(9)
-  doc.text('SulHub · Metas', margem, 14)
   doc.text(`Gerado em ${new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`, largura - margem, 14, {
     align: 'right',
   })
 
+  const topo = 10 + alturaLogo + 12
   doc.setTextColor(...COR_TEXTO)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.text(representante, margem, 25)
+  doc.text(representante, margem, topo)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
   doc.setTextColor(...COR_SUAVE)
   const mesTexto = rotuloMes(mes)
-  doc.text(`Metas de ${mesTexto}`, margem, 32)
+  doc.text(`Metas de ${mesTexto}`, margem, topo + 7)
 
-  let y = 40
+  let y = topo + 15
   if (progressoMedio !== null) {
     doc.setFontSize(9)
     doc.text('Progresso médio', margem, y)
