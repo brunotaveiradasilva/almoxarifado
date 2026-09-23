@@ -119,6 +119,19 @@
   .menu-lateral-item:hover { background: var(--surface-2); color: var(--ink); }
   .menu-lateral-item.is-ativo { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
   .menu-lateral-item svg { flex-shrink: 0; }
+  .menu-lateral-subitens {
+    display: flex; flex-direction: column; gap: 2px;
+    margin: 2px 0 6px 20px; padding-left: 10px; border-left: 1px solid var(--divider);
+  }
+  .menu-lateral-subitem {
+    background: none; border: 0; cursor: pointer; text-align: left;
+    padding: 7px 10px; border-radius: var(--radius);
+    font-size: 13.5px; letter-spacing: -.01em; color: var(--ink-2);
+    transition: background .18s ease, color .18s ease;
+  }
+  .menu-lateral-subitem:hover { background: var(--surface-2); color: var(--ink); }
+  .menu-lateral-subitem.is-ativo { color: var(--accent); font-weight: 500; }
+  nav.tabs.tabs-so-celular { display: none; }
 
   .menu-lateral-conta { margin-top: auto; position: relative; }
   .menu-lateral-rodape {
@@ -180,6 +193,8 @@
     .menu-lateral-item span:not(:first-child) { display: none; }
     .menu-lateral-item { justify-content: center; padding: 10px; }
     .menu-lateral-usuario { display: none; }
+    .menu-lateral-subitens { display: none; }
+    nav.tabs.tabs-so-celular { display: flex; overflow-x: auto; }
   }
 
   /* ---------- login ---------- */

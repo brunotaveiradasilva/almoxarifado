@@ -11,9 +11,9 @@ import { ConsultaMetasPorRepresentante } from './ConsultaMetasPorRepresentante'
 import { ConsultaMetasPorFornecedor } from './ConsultaMetasPorFornecedor'
 import type { Fornecedor, Meta, Representante } from '../types'
 
-type Subaba = 'fornecedores' | 'representantes' | 'metas' | 'porRepresentante' | 'porFornecedor'
+export type SubabaMetas = 'fornecedores' | 'representantes' | 'metas' | 'porRepresentante' | 'porFornecedor'
 
-const SUBABAS: { valor: Subaba; rotulo: string }[] = [
+export const SUBABAS_METAS: { valor: SubabaMetas; rotulo: string }[] = [
   { valor: 'fornecedores', rotulo: 'Fornecedores' },
   { valor: 'representantes', rotulo: 'Representantes' },
   { valor: 'metas', rotulo: 'Metas' },
@@ -22,9 +22,14 @@ const SUBABAS: { valor: Subaba; rotulo: string }[] = [
 ]
 
 /** Cadastros de apoio às metas — fornecedores, representantes e metas — e telas de consulta. Só monta para quem é admin. */
-export function PainelMetas() {
+interface Props {
+  subaba: SubabaMetas
+  aoMudarSubaba: (subaba: SubabaMetas) => void
+}
+
+/** A navegação entre as subabas fica no menu lateral; as abas daqui só aparecem no celular, onde o menu vira só ícones. */
+export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
   const metas = useMetas()
-  const [subaba, setSubaba] = useState<Subaba>('fornecedores')
 
   const [dialogoFornecedor, setDialogoFornecedor] = useState<{ aberto: boolean; fornecedor: Fornecedor | null }>({
     aberto: false,
@@ -94,9 +99,9 @@ export function PainelMetas() {
         </div>
       ) : null}
 
-      <nav className="tabs" role="tablist">
-        {SUBABAS.map((s) => (
-          <button key={s.valor} role="tab" aria-selected={subaba === s.valor} onClick={() => setSubaba(s.valor)}>
+      <nav className="tabs tabs-so-celular" role="tablist">
+        {SUBABAS_METAS.map((s) => (
+          <button key={s.valor} role="tab" aria-selected={subaba === s.valor} onClick={() => aoMudarSubaba(s.valor)}>
             {s.rotulo}
           </button>
         ))}
