@@ -26,9 +26,11 @@ export function DialogoEditarMetaRepresentante({ representante, meta, mes, atrib
   const [erro, setErro] = useState('')
 
   const valorNum = Number.parseFloat(valor)
+  const contagem = meta.unidade === 'CLIENTES'
 
   function continuar() {
     if (!Number.isFinite(valorNum) || valorNum < 0) return setErro('Informe um valor de meta válido.')
+    if (contagem && !Number.isInteger(valorNum)) return setErro('Meta de clientes é um número inteiro.')
     if (valorNum === valorAtual) return setErro('O valor é igual ao atual.')
     setErro('')
     setPasso('confirmar')
@@ -93,7 +95,7 @@ export function DialogoEditarMetaRepresentante({ representante, meta, mes, atrib
           id="emr-valor"
           type="number"
           min={0}
-          step="any"
+          step={contagem ? 1 : 'any'}
           autoFocus
           value={valor}
           onChange={(e) => setValor(e.target.value)}

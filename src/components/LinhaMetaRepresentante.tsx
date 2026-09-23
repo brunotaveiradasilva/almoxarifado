@@ -1,4 +1,4 @@
-import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
+import { ROTULO_UNIDADE_META, formatarValorMeta } from '../lib/unidadeMeta'
 import type { Meta, MetaRepresentante } from '../types'
 
 interface Props {
@@ -9,8 +9,6 @@ interface Props {
   aoEditar: (() => void) | null
 }
 
-const formatar = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-
 /**
  * Linha da tabela de metas (um representante × uma meta). O valor da Meta muda pelo botão Editar (abre um
  * diálogo com confirmação); o Realizado chega da API (sincronização com a ADS) e é só leitura.
@@ -19,6 +17,7 @@ export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, ao
   const metaNum = atribuicao?.valorMeta ?? 0
   const realizadoNum = atribuicao?.valorRealizado ?? 0
   const falta = metaNum - realizadoNum
+  const formatar = (n: number) => formatarValorMeta(n, meta.unidade)
   const percentual = metaNum > 0 ? (realizadoNum / metaNum) * 100 : null
 
   return (

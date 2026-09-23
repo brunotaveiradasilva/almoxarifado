@@ -49,8 +49,8 @@ export interface Representante {
   totalVendidoAds: number | null
 }
 
-/** Como uma meta é medida. */
-export type UnidadeMeta = 'KG' | 'UNIDADE' | 'REAL'
+/** Como uma meta é medida. CLIENTES é positivação: quantos clientes diferentes compraram no mês. */
+export type UnidadeMeta = 'KG' | 'UNIDADE' | 'REAL' | 'CLIENTES'
 
 export interface Meta {
   id: string
