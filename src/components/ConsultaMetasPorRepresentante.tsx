@@ -4,6 +4,7 @@ import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { rotuloMesCurto } from '../lib/mes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
+import { exportarPdfMetasRepresentante } from '../lib/pdfMetasRepresentante'
 import type { Fornecedor, Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
 
 interface Props {
@@ -41,6 +42,7 @@ export function ConsultaMetasPorRepresentante({
   aoTrocarOrdem,
 }: Props) {
   const [representanteId, setRepresentanteId] = useState(representantes[0]?.id ?? '')
+  const [gerandoPdf, setGerandoPdf] = useState(false)
   const representante = representantes.find((v) => v.id === representanteId) ?? null
   const mesesComDados = useMemo(() => [...new Set(metasRepresentante.map((mv) => mv.mes))], [metasRepresentante])
 
@@ -81,6 +83,26 @@ export function ConsultaMetasPorRepresentante({
     : null
   const totalVendido = totaisVendidos.find((t) => t.representanteId === representanteId && t.mes === mes)?.total ?? 0
 
+  async function exportarPdf() {
+    if (!representante) return
+    setGerandoPdf(true)
+    try {
+      await exportarPdfMetasRepresentante({
+        representante: representante.nome,
+        mes,
+        grupos: separarPorFornecedor
+          ? grupos.map((g) => ({ titulo: g.fornecedor.nome, linhas: g.linhas }))
+          : [{ titulo: `Metas de ${representante.nome}`, linhas }],
+        progressoMedio,
+        totalVendido,
+      })
+    } catch {
+      window.alert('Não deu pra gerar o PDF. Tente de novo.')
+    } finally {
+      setGerandoPdf(false)
+    }
+  }
+
   if (!representantes.length) {
     return <EstadoVazio titulo="Nenhum representante cadastrado" texto="Cadastre um representante pra consultar as metas dele." />
   }
@@ -99,6 +121,9 @@ export function ConsultaMetasPorRepresentante({
           </select>
         </div>
         <SeletorMes id="cv-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={aoMudarMes} />
+        <button className="btn consulta-exportar" disabled={!linhas.length || gerandoPdf} onClick={exportarPdf}>
+          {gerandoPdf ? 'Gerando PDF…' : 'Exportar PDF'}
+        </button>
       </div>
 
       {comMeta.length ? (
