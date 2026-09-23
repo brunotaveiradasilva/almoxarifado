@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { redimensionarAvatar } from '../lib/avatar'
 import { IconeMateriais, IconeMetas } from './IconesMenu'
+import { SUBABAS_METAS, type SubabaMetas } from './PainelMetas'
 
 export type AbaPrincipal = 'materiais' | 'metas'
 
@@ -10,6 +11,8 @@ interface Props {
   usuario: string
   avatar: string | null
   aoMudarAba: (aba: AbaPrincipal) => void
+  subabaMetas: SubabaMetas
+  aoMudarSubabaMetas: (subaba: SubabaMetas) => void
   aoAbrirUsuarios: () => void
   aoAbrirTrocarSenha: () => void
   aoSair: () => void
@@ -23,6 +26,8 @@ export function MenuLateral({
   usuario,
   avatar,
   aoMudarAba,
+  subabaMetas,
+  aoMudarSubabaMetas,
   aoAbrirUsuarios,
   aoAbrirTrocarSenha,
   aoSair,
@@ -89,6 +94,22 @@ export function MenuLateral({
             <IconeMetas />
             <span>Metas</span>
           </button>
+        ) : null}
+
+        {isAdmin && aba === 'metas' ? (
+          <div className="menu-lateral-subitens">
+            {SUBABAS_METAS.map((s) => (
+              <button
+                key={s.valor}
+                type="button"
+                className={`menu-lateral-subitem${subabaMetas === s.valor ? ' is-ativo' : ''}`}
+                aria-current={subabaMetas === s.valor ? 'page' : undefined}
+                onClick={() => aoMudarSubabaMetas(s.valor)}
+              >
+                {s.rotulo}
+              </button>
+            ))}
+          </div>
         ) : null}
       </nav>
 

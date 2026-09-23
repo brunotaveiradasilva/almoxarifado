@@ -10,7 +10,7 @@ import { FormularioAgendamento } from './FormularioAgendamento'
 import { FormularioMaterial } from './FormularioMaterial'
 import { FormularioTrocarSenha } from './FormularioTrocarSenha'
 import { PainelUsuarios } from './PainelUsuarios'
-import { PainelMetas } from './PainelMetas'
+import { PainelMetas, type SubabaMetas } from './PainelMetas'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
 import type { Agendamento, Filtro, Material } from '../types'
 
@@ -38,6 +38,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
 
   const [aba, setAba] = useState<AbaPrincipal>('materiais')
   const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('retiradas')
+  const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>('fornecedores')
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [buscaAgenda, setBuscaAgenda] = useState('')
   const [buscaMaterial, setBuscaMaterial] = useState('')
@@ -109,7 +110,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         {primeiraCarga ? (
           <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
         ) : aba === 'metas' ? (
-          <PainelMetas />
+          <PainelMetas subaba={subabaMetas} aoMudarSubaba={setSubabaMetas} />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">
@@ -287,6 +288,8 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         usuario={usuario}
         avatar={avatar}
         aoMudarAba={setAba}
+        subabaMetas={subabaMetas}
+        aoMudarSubabaMetas={setSubabaMetas}
         aoAbrirUsuarios={() => setDialogoUsuarios(true)}
         aoAbrirTrocarSenha={() => setDialogoSenha(true)}
         aoSair={aoSair}
