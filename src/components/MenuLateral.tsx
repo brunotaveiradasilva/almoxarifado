@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { redimensionarAvatar } from '../lib/avatar'
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { IconeMateriais, IconeMetas } from './IconesMenu'
 import { SUBABAS_METAS, type SubabaMetas } from './PainelMetas'
+import { SUBABAS_MATERIAIS, type SubabaMateriais } from '../lib/navegacao'
 
 export type AbaPrincipal = 'materiais' | 'metas'
 
@@ -11,12 +11,13 @@ interface Props {
   usuario: string
   avatar: string | null
   aoMudarAba: (aba: AbaPrincipal) => void
+  subabaMateriais: SubabaMateriais
+  aoMudarSubabaMateriais: (subaba: SubabaMateriais) => void
   subabaMetas: SubabaMetas
   aoMudarSubabaMetas: (subaba: SubabaMetas) => void
   aoAbrirUsuarios: () => void
-  aoAbrirTrocarSenha: () => void
+  aoAbrirConta: () => void
   aoSair: () => void
-  aoTrocarFoto: (avatar: string | null) => Promise<void>
 }
 
 /** Menu vertical fixo à esquerda: navegação principal em cima, conta logada (com menu) no rodapé. */
@@ -26,16 +27,18 @@ export function MenuLateral({
   usuario,
   avatar,
   aoMudarAba,
+  subabaMateriais,
+  aoMudarSubabaMateriais,
   subabaMetas,
   aoMudarSubabaMetas,
   aoAbrirUsuarios,
-  aoAbrirTrocarSenha,
+  aoAbrirConta,
   aoSair,
-  aoTrocarFoto,
 }: Props) {
   const [aberto, setAberto] = useState(false)
+  // Subitens da seção atual escondidos — clicar de novo na seção que já está aberta recolhe.
+  const [recolhida, setRecolhida] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!aberto) return
@@ -46,85 +49,107 @@ export function MenuLateral({
     return () => document.removeEventListener('mousedown', aoClicarFora)
   }, [aberto])
 
-  async function aoEscolherArquivo(e: ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0]
-    e.target.value = ''
-    if (!arquivo) return
-
-    try {
-      const dataUrl = await redimensionarAvatar(arquivo)
-      await aoTrocarFoto(dataUrl)
-    } catch {
-      window.alert('Não foi possível trocar a foto. Tente outra imagem.')
+  /** Na seção atual, abre/recolhe os subitens; em outra, vai pra ela já aberta. */
+  function clicarSecao(destino: AbaPrincipal) {
+    if (destino === aba) {
+      setRecolhida((r) => !r)
+      return
     }
-    setAberto(false)
+    setRecolhida(false)
+    aoMudarAba(destino)
   }
 
-  async function remover() {
-    setAberto(false)
-    try {
-      await aoTrocarFoto(null)
-    } catch {
-      window.alert('Não foi possível remover a foto. Tente de novo.')
-    }
-  }
+  const secoes = [
+    {
+      aba: 'materiais' as const,
+      rotulo: 'Materiais',
+      icone: <IconeMateriais />,
+      subitens: SUBABAS_MATERIAIS.map((s) => ({
+        ...s,
+        ativo: subabaMateriais === s.valor,
+        escolher: () => aoMudarSubabaMateriais(s.valor),
+      })),
+    },
+    ...(isAdmin
+      ? [
+          {
+            aba: 'metas' as const,
+            rotulo: 'Metas',
+            icone: <IconeMetas />,
+            subitens: SUBABAS_METAS.map((s) => ({
+              ...s,
+              ativo: subabaMetas === s.valor,
+              escolher: () => aoMudarSubabaMetas(s.valor),
+            })),
+          },
+        ]
+      : []),
+  ]
 
   return (
     <aside className="menu-lateral">
       <div className="menu-lateral-marca">SulBiologic</div>
 
       <nav className="menu-lateral-nav" aria-label="Navegação principal">
-        <button
-          type="button"
-          className={`menu-lateral-item${aba === 'materiais' ? ' is-ativo' : ''}`}
-          aria-current={aba === 'materiais' ? 'page' : undefined}
-          onClick={() => aoMudarAba('materiais')}
-        >
-          <IconeMateriais />
-          <span>Materiais</span>
-        </button>
-
-        {isAdmin ? (
-          <button
-            type="button"
-            className={`menu-lateral-item${aba === 'metas' ? ' is-ativo' : ''}`}
-            aria-current={aba === 'metas' ? 'page' : undefined}
-            onClick={() => aoMudarAba('metas')}
-          >
-            <IconeMetas />
-            <span>Metas</span>
-          </button>
-        ) : null}
-
-        {isAdmin && aba === 'metas' ? (
-          <div className="menu-lateral-subitens">
-            {SUBABAS_METAS.map((s) => (
+        {secoes.map((secao) => {
+          const ativa = aba === secao.aba
+          const aberta = ativa && !recolhida
+          return (
+            <Fragment key={secao.aba}>
               <button
-                key={s.valor}
                 type="button"
-                className={`menu-lateral-subitem${subabaMetas === s.valor ? ' is-ativo' : ''}`}
-                aria-current={subabaMetas === s.valor ? 'page' : undefined}
-                onClick={() => aoMudarSubabaMetas(s.valor)}
+                className={`menu-lateral-item${ativa ? ' is-ativo' : ''}`}
+                aria-current={ativa ? 'page' : undefined}
+                aria-expanded={ativa ? aberta : undefined}
+                onClick={() => clicarSecao(secao.aba)}
               >
-                {s.rotulo}
+                {secao.icone}
+                <span>{secao.rotulo}</span>
+                <span className={`menu-lateral-seta${aberta ? ' is-aberta' : ''}`} aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
               </button>
-            ))}
-          </div>
-        ) : null}
+
+              {/* Sempre montado (fechado fica inert) pra dar pra animar também o fechar. */}
+              <div className={`menu-lateral-sanfona${aberta ? ' is-aberta' : ''}`} inert={!aberta}>
+                <div className="menu-lateral-sanfona-conteudo">
+                  <div className="menu-lateral-subitens">
+                    {secao.subitens.map((s, i) => (
+                      <button
+                        key={s.valor}
+                        type="button"
+                        className={`menu-lateral-subitem${s.ativo ? ' is-ativo' : ''}`}
+                        style={{ '--i': i } as CSSProperties}
+                        aria-current={s.ativo ? 'page' : undefined}
+                        onClick={s.escolher}
+                      >
+                        {s.rotulo}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Fragment>
+          )
+        })}
       </nav>
 
       <div className="menu-lateral-conta" ref={containerRef}>
         {aberto ? (
           <div className="menu-dropdown" role="menu">
             <div className="menu-dropdown-usuario">{usuario}</div>
-            <button type="button" role="menuitem" onClick={() => inputRef.current?.click()}>
-              Alterar foto
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setAberto(false)
+                aoAbrirConta()
+              }}
+            >
+              Minha conta
             </button>
-            {avatar ? (
-              <button type="button" role="menuitem" onClick={remover}>
-                Remover foto
-              </button>
-            ) : null}
             {isAdmin ? (
               <button
                 type="button"
@@ -137,16 +162,6 @@ export function MenuLateral({
                 Usuários
               </button>
             ) : null}
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setAberto(false)
-                aoAbrirTrocarSenha()
-              }}
-            >
-              Trocar senha
-            </button>
             <button
               type="button"
               role="menuitem"
@@ -173,8 +188,6 @@ export function MenuLateral({
           </span>
           <span className="menu-lateral-usuario">{usuario}</span>
         </button>
-
-        <input ref={inputRef} type="file" accept="image/*" hidden onChange={aoEscolherArquivo} />
       </div>
     </aside>
   )

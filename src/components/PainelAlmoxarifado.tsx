@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useAlmoxarifado } from '../hooks/useAlmoxarifado'
 import { calcularResumo, filtrarAgendamentos } from '../lib/regras'
+import { SUBABAS_MATERIAIS, type SubabaMateriais } from '../lib/navegacao'
 import { PainelResumo } from './PainelResumo'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaAgendamentos } from './TabelaAgendamentos'
@@ -8,7 +9,7 @@ import { TabelaMateriais } from './TabelaMateriais'
 import { DetalhesAgendamento } from './DetalhesAgendamento'
 import { FormularioAgendamento } from './FormularioAgendamento'
 import { FormularioMaterial } from './FormularioMaterial'
-import { FormularioTrocarSenha } from './FormularioTrocarSenha'
+import { MinhaConta } from './MinhaConta'
 import { PainelUsuarios } from './PainelUsuarios'
 import { PainelMetas, type SubabaMetas } from './PainelMetas'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
@@ -30,14 +31,12 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
   { valor: 'devolvido', rotulo: 'Devolvidos' },
 ]
 
-type SubabaMateriais = 'retiradas' | 'cadastro'
-
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
 export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarFoto }: Props) {
   const app = useAlmoxarifado()
 
   const [aba, setAba] = useState<AbaPrincipal>('materiais')
-  const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('retiradas')
+  const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('agendamentos')
   const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>('fornecedores')
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [buscaAgenda, setBuscaAgenda] = useState('')
@@ -56,7 +55,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
     material: null,
   })
 
-  const [dialogoSenha, setDialogoSenha] = useState(false)
+  const [dialogoConta, setDialogoConta] = useState(false)
   const [dialogoUsuarios, setDialogoUsuarios] = useState(false)
 
   const primeiraCarga = app.carregando && !app.materiais.length && !app.agendamentos.length
@@ -121,7 +120,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
                   marcados como atrasados.
                 </p>
               </div>
-              {subabaMateriais === 'retiradas' ? (
+              {subabaMateriais === 'agendamentos' ? (
                 <button className="btn btn-primary" onClick={() => abrirAgendamento(null)}>
                   + Novo agendamento
                 </button>
@@ -135,16 +134,21 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
               )}
             </div>
 
-            <nav className="tabs" role="tablist">
-              <button role="tab" aria-selected={subabaMateriais === 'retiradas'} onClick={() => setSubabaMateriais('retiradas')}>
-                Retiradas
-              </button>
-              <button role="tab" aria-selected={subabaMateriais === 'cadastro'} onClick={() => setSubabaMateriais('cadastro')}>
-                Cadastro
-              </button>
+            {/* A navegação entre as subabas fica no menu lateral; essas abas só aparecem no celular. */}
+            <nav className="tabs tabs-so-celular" role="tablist">
+              {SUBABAS_MATERIAIS.map((s) => (
+                <button
+                  key={s.valor}
+                  role="tab"
+                  aria-selected={subabaMateriais === s.valor}
+                  onClick={() => setSubabaMateriais(s.valor)}
+                >
+                  {s.rotulo}
+                </button>
+              ))}
             </nav>
 
-            {subabaMateriais === 'retiradas' ? (
+            {subabaMateriais === 'agendamentos' ? (
               <>
                 <PainelResumo resumo={resumo} />
 
@@ -242,7 +246,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
                       materiais={materiaisVisiveis}
                       agendamentos={app.agendamentos}
                       aoAgendar={(materialId) => {
-                        setSubabaMateriais('retiradas')
+                        setSubabaMateriais('agendamentos')
                         abrirAgendamento(null, materialId)
                       }}
                       aoEditar={(material) => setDialogoMaterial({ aberto: true, material })}
@@ -290,12 +294,13 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         usuario={usuario}
         avatar={avatar}
         aoMudarAba={setAba}
+        subabaMateriais={subabaMateriais}
+        aoMudarSubabaMateriais={setSubabaMateriais}
         subabaMetas={subabaMetas}
         aoMudarSubabaMetas={setSubabaMetas}
         aoAbrirUsuarios={() => setDialogoUsuarios(true)}
-        aoAbrirTrocarSenha={() => setDialogoSenha(true)}
+        aoAbrirConta={() => setDialogoConta(true)}
         aoSair={aoSair}
-        aoTrocarFoto={aoTrocarFoto}
       />
 
       {detalhesAgendamento ? (
@@ -332,7 +337,14 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         />
       ) : null}
 
-      {dialogoSenha ? <FormularioTrocarSenha aoFechar={() => setDialogoSenha(false)} /> : null}
+      {dialogoConta ? (
+        <MinhaConta
+          usuario={usuario}
+          avatar={avatar}
+          aoTrocarFoto={aoTrocarFoto}
+          aoFechar={() => setDialogoConta(false)}
+        />
+      ) : null}
 
       {dialogoUsuarios ? (
         <PainelUsuarios usuarioAtual={usuario} aoFechar={() => setDialogoUsuarios(false)} />
