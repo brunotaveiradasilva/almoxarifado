@@ -57,7 +57,7 @@ export function ConsultaMetasPorRepresentante({
           ) ?? null
         const valorMeta = atribuicao?.valorMeta ?? 0
         const valorRealizado = atribuicao?.valorRealizado ?? 0
-        const falta = valorMeta - valorRealizado
+        const falta = Math.max(0, valorMeta - valorRealizado)
         const percentual = valorMeta > 0 ? (valorRealizado / valorMeta) * 100 : null
         return { meta, atribuicao, valorMeta, valorRealizado, falta, percentual }
       })
