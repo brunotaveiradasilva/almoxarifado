@@ -64,6 +64,8 @@ export interface Meta {
   cnpjAdsFornecedor: string
   /** Produtos que não contam pra meta, separados por vírgula: código do produto na ADS ("5085") ou trecho do nome ("WELLPET"). Null em metas antigas. */
   produtosExcluidos: string | null
+  /** Se preenchido, só esses produtos contam pra meta — mesmo formato de produtosExcluidos. Null em metas antigas. */
+  produtosIncluidos: string | null
 }
 
 /** O valor de uma meta atribuído a um representante num mês: quanto ele precisa bater e quanto já bateu. */

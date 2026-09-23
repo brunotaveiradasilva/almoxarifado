@@ -18,6 +18,7 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
   const [unidade, setUnidade] = useState<UnidadeMeta>(meta?.unidade ?? 'KG')
   const [codigoAdsDivisao, setCodigoAdsDivisao] = useState(meta?.codigoAdsDivisao ?? '')
   const [cnpjAdsFornecedor, setCnpjAdsFornecedor] = useState(meta?.cnpjAdsFornecedor ?? '')
+  const [produtosIncluidos, setProdutosIncluidos] = useState(meta?.produtosIncluidos ?? '')
   const [produtosExcluidos, setProdutosExcluidos] = useState(meta?.produtosExcluidos ?? '')
   const [erro, setErro] = useState('')
 
@@ -34,6 +35,7 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
         codigoAdsDivisao: codigoAdsDivisao.trim(),
         cnpjAdsFornecedor: cnpjAdsFornecedor.trim(),
         produtosExcluidos: produtosExcluidos.trim(),
+        produtosIncluidos: produtosIncluidos.trim(),
       },
       meta?.id,
     )
@@ -112,6 +114,23 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
         <p className="hint">
           Pra metas "geral" que somam tudo vendido de um fornecedor na ADS, sem filtrar por divisão. Deixe em branco
           se essa meta usa o código de divisão acima. Se os dois estiverem preenchidos, esse tem prioridade.
+        </p>
+      </div>
+
+      <div className="field">
+        <label htmlFor="me-produtos-incluidos">Produtos incluídos na meta</label>
+        <input
+          id="me-produtos-incluidos"
+          maxLength={255}
+          placeholder="Ex.: BANNI ou 1234, 1235*3"
+          value={produtosIncluidos}
+          onChange={(e) => setProdutosIncluidos(e.target.value)}
+        />
+        <p className="hint">
+          Se preenchido, só esses produtos contam pra meta — pra metas de um produto só (ex.: a sazonal do Banni). Mesmo
+          formato dos excluídos: número é o código do produto na ADS; texto pega todo produto que tenha ele no nome.
+          Funciona sozinho, sem CNPJ nem divisão. Pra kit que a ADS conta como 1, ponha o fator depois: 4931*3 faz
+          cada unidade vendida valer 3 nas metas em unidade.
         </p>
       </div>
 
