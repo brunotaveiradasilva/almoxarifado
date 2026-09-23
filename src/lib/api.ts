@@ -224,6 +224,12 @@ export function excluirMeta(id: string): Promise<void> {
   return requisitar(`/api/metas/${id}`, { method: 'DELETE' })
 }
 
+/** Grava a ordem das metas na tela (ids na ordem desejada). Devolve todas as metas já ordenadas. */
+export function ordenarMetas(ids: string[]): Promise<Meta[]> {
+  if (MOCK) return mock.ordenarMetas(ids)
+  return requisitar('/api/metas/ordem', { method: 'PUT', body: JSON.stringify({ ids }) })
+}
+
 /**
  * Formato aceito pela API para criar/atualizar um valor de meta de representante num mês. Não tem
  * valorRealizado: ele só chega pela sincronização com a ADS.

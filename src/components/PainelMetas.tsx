@@ -167,31 +167,41 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           ) : null}
         </div>
       ) : subaba === 'metas' ? (
-        <div className="table-wrap table-wrap-compacta">
-          <table>
-            <thead>
-              <tr>
-                <th>Meta</th>
-                <th>Fornecedor</th>
-                <th>Unidade</th>
-                <th />
-              </tr>
-            </thead>
-            <TabelaMetas
-              metas={metas.metas}
-              aoEditar={(meta) => setDialogoMeta({ aberto: true, meta })}
-              aoExcluir={excluirMeta}
-            />
-          </table>
-
-          {!metas.metas.length ? (
-            <EstadoVazio titulo="Nenhuma meta cadastrada" texto="Cadastre as metas de cada fornecedor.">
-              <button className="btn btn-primary" onClick={() => setDialogoMeta({ aberto: true, meta: null })}>
-                + Cadastrar meta
-              </button>
-            </EstadoVazio>
+        <>
+          {metas.metas.length > 1 ? (
+            <p className="hint consulta-info">
+              Use ↑ e ↓ pra mudar a ordem (dá também direto em Meta Representante): é nessa ordem que as metas aparecem
+              em Meta Representante e Meta Fornecedor.
+            </p>
           ) : null}
-        </div>
+
+          <div className="table-wrap table-wrap-compacta">
+            <table>
+              <thead>
+                <tr>
+                  <th>Meta</th>
+                  <th>Fornecedor</th>
+                  <th>Unidade</th>
+                  <th />
+                </tr>
+              </thead>
+              <TabelaMetas
+                metas={metas.metas}
+                aoEditar={(meta) => setDialogoMeta({ aberto: true, meta })}
+                aoExcluir={excluirMeta}
+                aoTrocarOrdem={(meta, vizinha) => metas.trocarOrdemMetas(meta.id, vizinha.id)}
+              />
+            </table>
+
+            {!metas.metas.length ? (
+              <EstadoVazio titulo="Nenhuma meta cadastrada" texto="Cadastre as metas de cada fornecedor.">
+                <button className="btn btn-primary" onClick={() => setDialogoMeta({ aberto: true, meta: null })}>
+                  + Cadastrar meta
+                </button>
+              </EstadoVazio>
+            ) : null}
+          </div>
+        </>
       ) : subaba === 'porRepresentante' ? (
         <ConsultaMetasPorRepresentante
           representantes={metas.representantes}
@@ -200,6 +210,7 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           totaisVendidos={metas.totaisVendidos}
           mes={mes}
           aoMudarMes={setMes}
+          aoTrocarOrdem={(meta, vizinha) => metas.trocarOrdemMetas(meta.id, vizinha.id)}
         />
       ) : (
         <ConsultaMetasPorFornecedor

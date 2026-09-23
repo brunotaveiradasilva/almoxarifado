@@ -98,8 +98,8 @@ let representantes: Representante[] = [
 ]
 
 let metas: Meta[] = [
-  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '' },
-  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '' },
+  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 0 },
+  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 1 },
 ]
 
 // Mês atual e o anterior, pra dar pra testar o filtro de mês e o "copiar do mês anterior".
@@ -284,6 +284,7 @@ export function criarMeta(meta: MetaEntradaMock): Promise<Meta> {
     cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     produtosExcluidos: meta.produtosExcluidos,
     produtosIncluidos: meta.produtosIncluidos,
+    ordem: metas.length,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = [...metas, novo]
@@ -299,6 +300,7 @@ export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> 
     cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     produtosExcluidos: meta.produtosExcluidos,
     produtosIncluidos: meta.produtosIncluidos,
+    ordem: metas.find((m) => m.id === id)?.ordem ?? null,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = metas.map((m) => (m.id === id ? atualizado : m))
@@ -308,6 +310,14 @@ export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> 
 export function excluirMeta(id: string): Promise<void> {
   metas = metas.filter((m) => m.id !== id)
   return Promise.resolve()
+}
+
+/** Mesma regra da API: as da lista na ordem dela, as que faltarem no fim. */
+export function ordenarMetas(ids: string[]): Promise<Meta[]> {
+  const naLista = ids.map((id) => metas.find((m) => m.id === id)).filter((m): m is Meta => !!m)
+  const resto = metas.filter((m) => !ids.includes(m.id))
+  metas = [...naLista, ...resto].map((m, i) => ({ ...m, ordem: i }))
+  return Promise.resolve(metas)
 }
 
 interface MetaRepresentanteEntradaMock {

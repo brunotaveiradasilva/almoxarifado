@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { BotoesOrdemMeta } from './BotoesOrdemMeta'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { rotuloMes, rotuloMesCurto } from '../lib/mes'
@@ -12,9 +13,14 @@ interface Props {
   totaisVendidos: TotalVendidoMensal[]
   mes: string
   aoMudarMes: (mes: string) => void
+  /** Muda a ordem das metas (a mesma pra todas as telas), trocando com a vizinha visível aqui. */
+  aoTrocarOrdem: (meta: Meta, vizinha: Meta) => void
 }
 
-/** Só visualização: metas do mês escolhido, de todos os fornecedores para quem o representante trabalha. Editar é na tela "Meta Fornecedor". */
+/**
+ * Metas do mês escolhido, de todos os fornecedores para quem o representante trabalha. Os valores só
+ * se editam na tela "Meta Fornecedor"; aqui dá pra mudar só a ordem das metas.
+ */
 export function ConsultaMetasPorRepresentante({
   representantes,
   metas,
@@ -22,6 +28,7 @@ export function ConsultaMetasPorRepresentante({
   totaisVendidos,
   mes,
   aoMudarMes,
+  aoTrocarOrdem,
 }: Props) {
   const [representanteId, setRepresentanteId] = useState(representantes[0]?.id ?? '')
   const representante = representantes.find((v) => v.id === representanteId) ?? null
@@ -30,9 +37,9 @@ export function ConsultaMetasPorRepresentante({
   const linhas = useMemo(() => {
     if (!representante) return []
     const fornecedorIds = new Set(representante.fornecedores.map((f) => f.id))
+    // Sem ordenar aqui: as metas já vêm na ordem que o admin escolheu na aba Metas.
     return metas
       .filter((m) => fornecedorIds.has(m.fornecedor.id))
-      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true }))
       .map((meta) => {
         const atribuicao =
           metasRepresentante.find(
@@ -115,10 +122,11 @@ export function ConsultaMetasPorRepresentante({
                   <th className="num">Realizado</th>
                   <th className="num">Falta</th>
                   <th className="num">Progresso</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
-                {linhas.map(({ meta, atribuicao, valorMeta, valorRealizado, falta, percentual }) => (
+                {linhas.map(({ meta, atribuicao, valorMeta, valorRealizado, falta, percentual }, i) => (
                   <tr key={meta.id}>
                     <td className="cell-material">{meta.nome}</td>
                     <td className="num">{atribuicao ? formatarValorMeta(valorMeta, meta.unidade) : '—'}</td>
@@ -135,6 +143,16 @@ export function ConsultaMetasPorRepresentante({
                         <span className="meta-progress-pct">
                           {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
                         </span>
+                      </div>
+                    </td>
+                    <td className="actions-cell">
+                      <div className="row-actions">
+                        <BotoesOrdemMeta
+                          meta={meta}
+                          anterior={linhas[i - 1]?.meta ?? null}
+                          proxima={linhas[i + 1]?.meta ?? null}
+                          aoTrocar={aoTrocarOrdem}
+                        />
                       </div>
                     </td>
                   </tr>

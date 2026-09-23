@@ -243,6 +243,7 @@
     transition: background .18s ease, border-color .18s ease, opacity .18s ease;
   }
   .btn:hover { background: var(--surface-2); }
+  .btn:disabled { opacity: .35; cursor: default; pointer-events: none; }
   .btn-primary {
     background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 400;
   }
