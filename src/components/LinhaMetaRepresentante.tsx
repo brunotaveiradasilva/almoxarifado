@@ -1,4 +1,4 @@
-import { ROTULO_UNIDADE_META, formatarValorMeta } from '../lib/unidadeMeta'
+import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { Meta, MetaRepresentante } from '../types'
 
 interface Props {
@@ -23,10 +23,7 @@ export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, ao
   return (
     <tr>
       <td className="cell-material">{representanteNome}</td>
-      <td>
-        {meta.nome}
-        <span className="cell-code">{ROTULO_UNIDADE_META[meta.unidade]}</span>
-      </td>
+      <td>{meta.nome}</td>
       <td className="num">{atribuicao ? formatar(metaNum) : '—'}</td>
       <td className="num">{formatar(realizadoNum)}</td>
       <td className="num">{formatar(falta)}</td>

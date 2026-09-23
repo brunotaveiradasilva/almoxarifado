@@ -13,10 +13,12 @@ export function sessaoSalva(): { token: string; usuario: string; role: Role; ava
     // Sessões salvas antes do campo role existir: trata como USUARIO comum.
     const role = (localStorage.getItem(CHAVE_ROLE) as Role | null) ?? 'USUARIO'
     const avatar = localStorage.getItem(CHAVE_AVATAR)
-    return token && usuario ? { token, usuario, role, avatar } : null
+    if (token && usuario) return { token, usuario, role, avatar }
   } catch {
-    return null
+    // Sem localStorage: segue sem sessão salva.
   }
+  // Com o backend falso (VITE_MOCK_API=true) já entra como admin, sem passar pela tela de login.
+  return import.meta.env.VITE_MOCK_API === 'true' ? { token: 'mock-token', usuario: 'admin', role: 'ADMIN', avatar: null } : null
 }
 
 export function salvarSessao(token: string, usuario: string, role: Role, avatar: string | null): void {

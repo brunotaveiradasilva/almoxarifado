@@ -7,4 +7,6 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
   plugins: [react()],
+  // PORT permite subir mais de um servidor de desenvolvimento ao mesmo tempo; sem ela, fica a 5173 padrão.
+  server: process.env.PORT ? { port: Number(process.env.PORT), strictPort: true } : undefined,
 })
