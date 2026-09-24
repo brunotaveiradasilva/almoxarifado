@@ -143,7 +143,7 @@ export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados)
   })
 
   const quem = representantes.length === 1 ? representantes[0].nome : 'todos'
-  const nomeArquivo = `especialista-pet-${quem}-${rotuloMesCurto(mes).replace('/', '-')}-baixado-${dataDeHojeParaArquivo()}`
+  const nomeArquivo = `especialista-pet-${quem}-${rotuloMesCurto(mes).replace('/', '-')}-${dataDeHojeParaArquivo()}`
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-zA-Z0-9-]+/g, '-')
