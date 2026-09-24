@@ -7,21 +7,51 @@ import type { ClienteEspecialistaPet } from '../types'
  * e a regra de desconto que ela aplica.
  */
 
+export interface DescontoEspecialistaPet {
+  /** Produto foco em R$ (tabela) e o desconto sobre ele. */
+  reaisFoco: number
+  percentualFoco: number
+  valorFoco: number
+  /** Os outros SKUs PremieR em R$ (tabela) e o desconto sobre eles. */
+  reaisSemFoco: number
+  percentualSemFoco: number
+  valorSemFoco: number
+  /** Os dois descontos somados. */
+  valor: number
+}
+
 /**
- * Desconto que o cliente conquista, em cima do realizado em R$ a preço de tabela: bater a meta de
- * todos os SKUs dá 10% (numérica) ou 5% (ponderada); bater também a do produto foco sobe pra 12% ou 6%.
- * Sem bater todos os SKUs, nada — a mesma fórmula da coluna "DESCONTO - CONQUISTADO" da planilha.
+ * Desconto que o cliente conquista, sobre o realizado em R$ a preço de tabela (sem desconto), em duas
+ * partes. A faixa da campanha: bater a meta de todos os SKUs dá 10% (numérica) ou 5% (ponderada);
+ * bater também a do produto foco sobe pra 12% ou 6%. Sem bater todos os SKUs, nada.
+ *
+ * - Sem o produto foco: o R$ dos outros SKUs × a faixa.
+ * - Produto foco: o R$ do foco × a faixa, só se bateu a meta de foco — senão 0%.
  */
-export function descontoEspecialistaPet(c: ClienteEspecialistaPet): { percentual: number; valor: number } {
+export function descontoEspecialistaPet(c: ClienteEspecialistaPet): DescontoEspecialistaPet {
   const bateuTotal = c.metaTotal > 0 && c.realizadoTotal >= c.metaTotal
   const bateuFoco = c.metaFoco > 0 && c.realizadoFoco >= c.metaFoco
   const ponderada = normalizar(c.classificacao) === 'PONDERADA'
   const numerica = normalizar(c.classificacao) === 'NUMERICA'
-  let percentual = 0
+  let faixa = 0
   if (bateuTotal && (numerica || ponderada)) {
-    percentual = numerica ? (bateuFoco ? 12 : 10) : bateuFoco ? 6 : 5
+    faixa = numerica ? (bateuFoco ? 12 : 10) : bateuFoco ? 6 : 5
   }
-  return { percentual, valor: (c.realizadoReais * percentual) / 100 }
+
+  const reaisFoco = c.realizadoFocoReais ?? 0
+  const reaisSemFoco = c.realizadoReais - reaisFoco
+  const percentualFoco = bateuFoco ? faixa : 0
+  const valorFoco = (reaisFoco * percentualFoco) / 100
+  const valorSemFoco = (reaisSemFoco * faixa) / 100
+  return {
+    reaisFoco,
+    percentualFoco,
+    valorFoco,
+    reaisSemFoco,
+    percentualSemFoco: faixa,
+    valorSemFoco,
+    valor: valorFoco + valorSemFoco,
+  }
 }
 
 /** "Acompanhamento - Especialista Pet - 09.2026 - ..." -> "2026-09". Null se o nome não tem o mês. */

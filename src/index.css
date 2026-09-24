@@ -525,8 +525,10 @@
   .ep-por-representante th:nth-child(2) { width: 9%; }
   .ep-por-representante th:nth-child(3), .ep-por-representante th:nth-child(4) { width: 23%; }
   .ep-por-representante th:nth-child(5) { width: 8%; }
-  .ep-clientes th:nth-child(1) { width: 34%; }
-  .ep-clientes th:nth-child(2), .ep-clientes th:nth-child(3) { width: 26%; }
+  .meta-card .ep-clientes { min-width: 1080px; }
+  .ep-clientes th:nth-child(1) { width: 25%; }
+  .ep-clientes th:nth-child(2), .ep-clientes th:nth-child(3) { width: 18%; }
+  .ep-desconto-total { font-weight: 600; }
   .ep-progresso { display: flex; flex-direction: column; gap: 6px; }
   .ep-progresso-valores { font-variant-numeric: tabular-nums; }
   .linha-clicavel { cursor: pointer; }

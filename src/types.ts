@@ -113,8 +113,10 @@ export interface ClienteEspecialistaPet {
   metaTotal: number
   realizadoFoco: number
   realizadoTotal: number
-  /** Todos os SKUs em R$ a preço de tabela — base do desconto conquistado. */
+  /** Todos os SKUs em R$ a preço de tabela (sem desconto), incluindo o produto foco. */
   realizadoReais: number
+  /** Só o produto foco em R$ a preço de tabela — parte de realizadoReais. */
+  realizadoFocoReais: number
 }
 
 export interface Dados {

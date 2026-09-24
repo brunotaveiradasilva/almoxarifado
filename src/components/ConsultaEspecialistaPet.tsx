@@ -222,7 +222,9 @@ export function ConsultaEspecialistaPet() {
                       <th>Cliente</th>
                       <th className="num">Foco (NATTU)</th>
                       <th className="num">Todos os SKUs</th>
-                      <th className="num">Desconto</th>
+                      <th className="num">R$ produto foco</th>
+                      <th className="num">R$ sem o foco</th>
+                      <th className="num">Desconto total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -242,17 +244,19 @@ export function ConsultaEspecialistaPet() {
                           </td>
                           <td className="num">
                             <Progresso meta={c.metaTotal} realizado={c.realizadoTotal} />
-                            <span className="meta-em-reais">{formatarValorMeta(c.realizadoReais, 'REAL')}</span>
                           </td>
                           <td className="num">
-                            {desconto.percentual ? (
-                              <>
-                                {formatarValorMeta(desconto.valor, 'REAL')}
-                                <span className="meta-em-reais">{desconto.percentual}%</span>
-                              </>
-                            ) : (
-                              '—'
-                            )}
+                            <ParteDesconto reais={desconto.reaisFoco} percentual={desconto.percentualFoco} valor={desconto.valorFoco} />
+                          </td>
+                          <td className="num">
+                            <ParteDesconto
+                              reais={desconto.reaisSemFoco}
+                              percentual={desconto.percentualSemFoco}
+                              valor={desconto.valorSemFoco}
+                            />
+                          </td>
+                          <td className="num ep-desconto-total">
+                            {desconto.valor > 0 ? formatarValorMeta(desconto.valor, 'REAL') : '—'}
                           </td>
                         </tr>
                       )
@@ -265,6 +269,18 @@ export function ConsultaEspecialistaPet() {
         </>
       )}
     </div>
+  )
+}
+
+/** Realizado em R$ (tabela, sem desconto) e, embaixo, o % aplicado e quanto isso deu de desconto. */
+function ParteDesconto({ reais, percentual, valor }: { reais: number; percentual: number; valor: number }) {
+  return (
+    <>
+      {formatarValorMeta(reais, 'REAL')}
+      <span className="meta-em-reais">
+        {percentual}% · {valor > 0 ? formatarValorMeta(valor, 'REAL') : 'sem desconto'}
+      </span>
+    </>
   )
 }
 
