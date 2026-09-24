@@ -411,7 +411,7 @@ export function listarEspecialistaPet(): Promise<ClienteEspecialistaPet[]> {
 /** Como a API: a planilha nova substitui o mês inteiro, com realizado zerado. */
 export function importarEspecialistaPet(
   mes: string,
-  clientes: Omit<ClienteEspecialistaPet, 'id' | 'mes' | 'realizadoFoco' | 'realizadoTotal' | 'realizadoReais'>[],
+  clientes: Omit<ClienteEspecialistaPet, 'id' | 'mes' | 'realizadoFoco' | 'realizadoTotal' | 'realizadoReais' | 'realizadoFocoReais'>[],
 ): Promise<ClienteEspecialistaPet[]> {
   const novos = clientes.map((c) => ({
     ...c,
@@ -420,6 +420,7 @@ export function importarEspecialistaPet(
     realizadoFoco: 0,
     realizadoTotal: 0,
     realizadoReais: 0,
+    realizadoFocoReais: 0,
   }))
   especialistaPet = [...especialistaPet.filter((c) => c.mes !== mes), ...novos]
   return Promise.resolve(novos)
@@ -430,11 +431,13 @@ export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecial
   especialistaPet = especialistaPet.map((c) => {
     if (c.mes !== mes) return c
     const realizadoTotal = Math.round(c.metaTotal * Math.random() * 1.6 * 10) / 10
+    const realizadoFoco = Math.round(c.metaFoco * Math.random() * 1.6 * 10) / 10
     return {
       ...c,
-      realizadoFoco: Math.round(c.metaFoco * Math.random() * 1.6 * 10) / 10,
+      realizadoFoco,
+      realizadoFocoReais: Math.round(realizadoFoco * 20 * 100) / 100,
       realizadoTotal,
-      realizadoReais: Math.round(realizadoTotal * 15 * 100) / 100,
+      realizadoReais: Math.round((realizadoTotal * 15 + realizadoFoco * 20) * 100) / 100,
     }
   })
   return new Promise((ok) => setTimeout(() => ok(especialistaPet.filter((c) => c.mes === mes)), 1500))
