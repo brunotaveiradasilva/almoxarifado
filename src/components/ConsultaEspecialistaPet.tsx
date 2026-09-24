@@ -11,10 +11,6 @@ const TODOS = ''
 
 interface Resumo {
   clientes: number
-  metaFoco: number
-  realizadoFoco: number
-  metaTotal: number
-  realizadoTotal: number
   bateramTotal: number
   bateramFoco: number
   desconto: number
@@ -24,22 +20,18 @@ function resumir(clientes: ClienteEspecialistaPet[]): Resumo {
   return clientes.reduce<Resumo>(
     (r, c) => ({
       clientes: r.clientes + 1,
-      metaFoco: r.metaFoco + c.metaFoco,
-      realizadoFoco: r.realizadoFoco + c.realizadoFoco,
-      metaTotal: r.metaTotal + c.metaTotal,
-      realizadoTotal: r.realizadoTotal + c.realizadoTotal,
       bateramTotal: r.bateramTotal + (c.metaTotal > 0 && c.realizadoTotal >= c.metaTotal ? 1 : 0),
       bateramFoco: r.bateramFoco + (c.metaFoco > 0 && c.realizadoFoco >= c.metaFoco ? 1 : 0),
       desconto: r.desconto + descontoEspecialistaPet(c).valor,
     }),
-    { clientes: 0, metaFoco: 0, realizadoFoco: 0, metaTotal: 0, realizadoTotal: 0, bateramTotal: 0, bateramFoco: 0, desconto: 0 },
+    { clientes: 0, bateramTotal: 0, bateramFoco: 0, desconto: 0 },
   )
 }
 
 /**
  * Campanha Especialista Pet: metas por cliente vindas da planilha da PremieR (produto foco NATTU e
- * todos os SKUs, em kg) e o realizado da ADS. Com "Todos" mostra um resumo por representante;
- * escolhendo um, os clientes dele.
+ * todos os SKUs, em kg) e o realizado da ADS, cliente a cliente — de todos os representantes ou só
+ * de um, escolhido no filtro.
  */
 export function ConsultaEspecialistaPet() {
   const esp = useEspecialistaPet()
@@ -55,11 +47,6 @@ export function ConsultaEspecialistaPet() {
   )
   const visiveis = representante === TODOS ? doMes : doMes.filter((c) => c.representante === representante)
   const resumo = resumir(visiveis)
-
-  const porRepresentante = useMemo(
-    () => representantes.map((nome) => ({ nome, resumo: resumir(doMes.filter((c) => c.representante === nome)) })),
-    [representantes, doMes],
-  )
 
   const clientesOrdenados = useMemo(
     () => [...visiveis].sort((a, b) => b.metaTotal - a.metaTotal || a.nome.localeCompare(b.nome, 'pt-BR')),
@@ -166,49 +153,6 @@ export function ConsultaEspecialistaPet() {
             </div>
           </div>
 
-          {representante === TODOS ? (
-            <div className="meta-card">
-              <div className="meta-card-head">
-                <h3>Por representante</h3>
-                <span className="meta-badge">{rotuloMesCurto(mes)}</span>
-              </div>
-              <div className="table-scroll">
-                <div className="table-wrap">
-                  <table className="tabela-especialista-pet ep-por-representante">
-                    <thead>
-                      <tr>
-                        <th>Representante</th>
-                        <th className="num">Clientes</th>
-                        <th className="num">Foco (NATTU)</th>
-                        <th className="num">Todos os SKUs</th>
-                        <th className="num">Bateram</th>
-                        <th className="num">Desconto</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {porRepresentante.map(({ nome, resumo: r }) => (
-                        <tr key={nome} className="linha-clicavel" onClick={() => setRepresentante(nome)}>
-                          <td className="cell-material">{nome}</td>
-                          <td className="num">{r.clientes}</td>
-                          <td className="num">
-                            <Progresso meta={r.metaFoco} realizado={r.realizadoFoco} />
-                          </td>
-                          <td className="num">
-                            <Progresso meta={r.metaTotal} realizado={r.realizadoTotal} />
-                          </td>
-                          <td className="num">
-                            {r.bateramTotal}/{r.clientes}
-                          </td>
-                          <td className="num">{formatarValorMeta(r.desconto, 'REAL')}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
           <div className="meta-card">
             <div className="meta-card-head">
               <h3>{representante === TODOS ? 'Todos os clientes' : `Clientes de ${representante}`}</h3>
@@ -219,17 +163,38 @@ export function ConsultaEspecialistaPet() {
                 <table className="tabela-especialista-pet ep-clientes">
                   <thead>
                     <tr>
-                      <th>Cliente</th>
-                      <th className="num">Foco (NATTU)</th>
-                      <th className="num">Todos os SKUs</th>
-                      <th className="num">R$ produto foco</th>
-                      <th className="num">R$ sem o foco</th>
-                      <th className="num">Desconto total</th>
+                      <th rowSpan={2}>Cliente</th>
+                      <th colSpan={6} className="ep-grupo">
+                        Produto foco NATTU (kg)
+                      </th>
+                      <th rowSpan={2} className="num">
+                        Todos os SKUs
+                      </th>
+                      <th rowSpan={2} className="num">
+                        R$ produto foco
+                      </th>
+                      <th rowSpan={2} className="num">
+                        R$ sem o foco
+                      </th>
+                      <th rowSpan={2} className="num">
+                        Desconto total
+                      </th>
+                    </tr>
+                    <tr>
+                      <th className="num">Meta</th>
+                      <th className="num">WILD</th>
+                      <th className="num">Sem WILD</th>
+                      <th className="num">Total</th>
+                      <th className="num">Efet. volume</th>
+                      <th className="ep-centro">Efet. cliente</th>
                     </tr>
                   </thead>
                   <tbody>
                     {clientesOrdenados.map((c) => {
                       const desconto = descontoEspecialistaPet(c)
+                      const focoWild = c.realizadoFocoWild ?? 0
+                      const efetividadeFoco = c.metaFoco > 0 ? (c.realizadoFoco / c.metaFoco) * 100 : null
+                      const bateuFoco = efetividadeFoco !== null && efetividadeFoco >= 100
                       return (
                         <tr key={c.id}>
                           <td className="cell-material">
@@ -239,8 +204,22 @@ export function ConsultaEspecialistaPet() {
                               {representante === TODOS ? ` · ${c.representante}` : ''}
                             </span>
                           </td>
+                          <td className="num">{kg(c.metaFoco)}</td>
+                          <td className="num">{kg(focoWild)}</td>
+                          <td className="num">{kg(c.realizadoFoco - focoWild)}</td>
+                          <td className="num ep-desconto-total">{kg(c.realizadoFoco)}</td>
                           <td className="num">
-                            <Progresso meta={c.metaFoco} realizado={c.realizadoFoco} />
+                            {efetividadeFoco === null
+                              ? '—'
+                              : `${efetividadeFoco.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
+                          </td>
+                          <td className="ep-centro">
+                            <span
+                              className={`ep-efetividade${bateuFoco ? ' is-ok' : ''}`}
+                              title={bateuFoco ? 'Bateu a meta do produto foco' : 'Não bateu a meta do produto foco'}
+                            >
+                              {bateuFoco ? '✓' : '✕'}
+                            </span>
                           </td>
                           <td className="num">
                             <Progresso meta={c.metaTotal} realizado={c.realizadoTotal} />
@@ -270,6 +249,11 @@ export function ConsultaEspecialistaPet() {
       )}
     </div>
   )
+}
+
+/** "1.275,0" — kg sem a unidade, que já está no cabeçalho do grupo. */
+function kg(n: number): string {
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
 /** Realizado em R$ (tabela, sem desconto) e, embaixo, o % aplicado e quanto isso deu de desconto. */

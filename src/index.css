@@ -521,18 +521,27 @@
   .meta-kpis-largo { max-width: 840px; }
   .meta-card .tabela-especialista-pet { table-layout: fixed; min-width: 860px; }
   .tabela-especialista-pet td { vertical-align: top; }
-  .ep-por-representante th:nth-child(1) { width: 26%; }
-  .ep-por-representante th:nth-child(2) { width: 9%; }
-  .ep-por-representante th:nth-child(3), .ep-por-representante th:nth-child(4) { width: 23%; }
-  .ep-por-representante th:nth-child(5) { width: 8%; }
-  .meta-card .ep-clientes { min-width: 1080px; }
-  .ep-clientes th:nth-child(1) { width: 25%; }
-  .ep-clientes th:nth-child(2), .ep-clientes th:nth-child(3) { width: 18%; }
+  /* Muitas colunas: fonte e espaçamento menores, largura pelo conteúdo. */
+  .meta-card .ep-clientes { table-layout: auto; min-width: 1100px; }
+  /* A regra global de 230px na primeira célula pegaria a "Meta" da segunda linha do cabeçalho. */
+  .ep-clientes thead tr + tr th:first-child { min-width: 0; }
+  .ep-clientes thead th { padding: 10px 12px; font-size: 11px; }
+  .ep-clientes tbody td { padding: 12px; font-size: 13px; line-height: 1.45; }
+  .ep-clientes .cell-material { font-size: 13px; min-width: 200px; white-space: normal; }
+  .ep-clientes .meta-em-reais { font-size: 12px; }
+  .ep-clientes .meta-progress-cell { min-width: 120px; }
+  .ep-clientes .meta-progress-pct { font-size: 12px; }
+  .ep-clientes thead th.ep-grupo { text-align: center; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--divider); }
+  .ep-clientes thead tr:first-child th[rowspan] { vertical-align: bottom; }
+  .ep-centro { text-align: center !important; }
+  .ep-efetividade {
+    display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+    font-size: 12px; font-weight: 700; color: #fff; background: var(--st-atrasado);
+  }
+  .ep-efetividade.is-ok { background: var(--st-devolvido); }
   .ep-desconto-total { font-weight: 600; }
   .ep-progresso { display: flex; flex-direction: column; gap: 6px; }
   .ep-progresso-valores { font-variant-numeric: tabular-nums; }
-  .linha-clicavel { cursor: pointer; }
-  .linha-clicavel:hover td { background: var(--surface-2); }
 
   /* Meta em kg: quanto o realizado deu em R$, mais discreto embaixo do nome. */
   .meta-em-reais { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--ink-3); }

@@ -117,6 +117,8 @@ export interface ClienteEspecialistaPet {
   realizadoReais: number
   /** Só o produto foco em R$ a preço de tabela — parte de realizadoReais. */
   realizadoFocoReais: number
+  /** Só a linha NATTU WILD, em kg — parte de realizadoFoco. */
+  realizadoFocoWild: number
 }
 
 export interface Dados {
