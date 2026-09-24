@@ -4,6 +4,7 @@ import { SeletorMes } from './SeletorMes'
 import { useEspecialistaPet } from '../hooks/useEspecialistaPet'
 import { descontoEspecialistaPet, lerPlanilhaEspecialistaPet, mesDoNomeDaPlanilha } from '../lib/especialistaPet'
 import { mesAtual, rotuloMes, rotuloMesCurto } from '../lib/mes'
+import { exportarPdfEspecialistaPet } from '../lib/pdfEspecialistaPet'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ClienteEspecialistaPet } from '../types'
 
@@ -37,6 +38,7 @@ export function ConsultaEspecialistaPet() {
   const esp = useEspecialistaPet()
   const [mes, setMes] = useState(mesAtual)
   const [representante, setRepresentante] = useState(TODOS)
+  const [gerandoPdf, setGerandoPdf] = useState(false)
   const entradaArquivo = useRef<HTMLInputElement>(null)
 
   const doMes = useMemo(() => esp.clientes.filter((c) => c.mes === mes), [esp.clientes, mes])
@@ -75,6 +77,22 @@ export function ConsultaEspecialistaPet() {
     await esp.importar(destino, linhas)
   }
 
+  /** Do representante escolhido, ou de todos — um por página. */
+  async function exportarPdf() {
+    const escolhidos = representante === TODOS ? representantes : [representante]
+    setGerandoPdf(true)
+    try {
+      await exportarPdfEspecialistaPet({
+        mes,
+        representantes: escolhidos.map((nome) => ({ nome, clientes: doMes.filter((c) => c.representante === nome) })),
+      })
+    } catch {
+      window.alert('Não deu pra gerar o PDF. Tente de novo.')
+    } finally {
+      setGerandoPdf(false)
+    }
+  }
+
   function mudarMes(novo: string) {
     setMes(novo)
     setRepresentante(TODOS)
@@ -110,6 +128,14 @@ export function ConsultaEspecialistaPet() {
           </button>
           <button className="btn" disabled={esp.ocupado !== null || !doMes.length} onClick={() => esp.sincronizar(mes)}>
             {esp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+          </button>
+          <button
+            className="btn"
+            disabled={gerandoPdf || !visiveis.length}
+            title={representante === TODOS ? 'Um representante por página' : undefined}
+            onClick={exportarPdf}
+          >
+            {gerandoPdf ? 'Gerando PDF…' : 'Exportar PDF'}
           </button>
           <input
             ref={entradaArquivo}
