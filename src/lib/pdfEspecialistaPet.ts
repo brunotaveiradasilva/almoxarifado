@@ -38,7 +38,7 @@ export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados)
   representantes.forEach(({ nome, clientes }, indice) => {
     if (indice > 0) doc.addPage()
 
-    const larguraLogo = 42
+    const larguraLogo = 30
     const alturaLogo = larguraLogo * logo.proporcao
     doc.addImage(logo.dados, 'PNG', margem, 9, larguraLogo, alturaLogo)
     doc.setFont('helvetica', 'normal')
