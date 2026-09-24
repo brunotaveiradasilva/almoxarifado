@@ -92,6 +92,31 @@ export interface TotalVendidoMensal {
   total: number
 }
 
+/**
+ * Um cliente da campanha Especialista Pet (PremieR) num mês. Metas em kg vêm da planilha da PremieR;
+ * o realizado vem da sincronização com a ADS.
+ */
+export interface ClienteEspecialistaPet {
+  id: string
+  /** "2026-09" */
+  mes: string
+  /** Id do cliente na ADS (coluna CÓDIGO da planilha). */
+  codigoCliente: string
+  nome: string
+  /** Nome como veio na coluna VENDEDOR da planilha — não é ligado ao cadastro de representantes. */
+  representante: string
+  /** "NUMÉRICA" ou "PONDERADA" — define a faixa de desconto. */
+  classificacao: string
+  /** Produto foco (NATTU), em kg. */
+  metaFoco: number
+  /** Todos os SKUs PremieR, em kg. */
+  metaTotal: number
+  realizadoFoco: number
+  realizadoTotal: number
+  /** Todos os SKUs em R$ a preço de tabela — base do desconto conquistado. */
+  realizadoReais: number
+}
+
 export interface Dados {
   materiais: Material[]
   agendamentos: Agendamento[]

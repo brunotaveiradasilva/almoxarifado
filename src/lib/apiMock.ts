@@ -2,6 +2,7 @@ import { somarDias } from './datas'
 import { mesAtual, mesFechado, somarMeses } from './mes'
 import type {
   Agendamento,
+  ClienteEspecialistaPet,
   Fornecedor,
   Material,
   Meta,
@@ -399,4 +400,42 @@ export function excluirMetaRepresentante(id: string): Promise<void> {
 export function sincronizarMetasRepresentante(mes: string): Promise<MetaRepresentante[]> {
   // Demora um pouco, como a ADS de verdade, pra dar pra ver o carregamento da tela.
   return new Promise((ok) => setTimeout(() => ok(metasRepresentante.filter((m) => m.mes === mes)), 1500))
+}
+
+let especialistaPet: ClienteEspecialistaPet[] = []
+
+export function listarEspecialistaPet(): Promise<ClienteEspecialistaPet[]> {
+  return Promise.resolve(especialistaPet)
+}
+
+/** Como a API: a planilha nova substitui o mês inteiro, com realizado zerado. */
+export function importarEspecialistaPet(
+  mes: string,
+  clientes: Omit<ClienteEspecialistaPet, 'id' | 'mes' | 'realizadoFoco' | 'realizadoTotal' | 'realizadoReais'>[],
+): Promise<ClienteEspecialistaPet[]> {
+  const novos = clientes.map((c) => ({
+    ...c,
+    id: novoId('esp'),
+    mes,
+    realizadoFoco: 0,
+    realizadoTotal: 0,
+    realizadoReais: 0,
+  }))
+  especialistaPet = [...especialistaPet.filter((c) => c.mes !== mes), ...novos]
+  return Promise.resolve(novos)
+}
+
+/** Sem ADS no mock: inventa um realizado em volta da meta, pra dar pra ver as barras e o desconto. */
+export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecialistaPet[]> {
+  especialistaPet = especialistaPet.map((c) => {
+    if (c.mes !== mes) return c
+    const realizadoTotal = Math.round(c.metaTotal * Math.random() * 1.6 * 10) / 10
+    return {
+      ...c,
+      realizadoFoco: Math.round(c.metaFoco * Math.random() * 1.6 * 10) / 10,
+      realizadoTotal,
+      realizadoReais: Math.round(realizadoTotal * 15 * 100) / 100,
+    }
+  })
+  return new Promise((ok) => setTimeout(() => ok(especialistaPet.filter((c) => c.mes === mes)), 1500))
 }

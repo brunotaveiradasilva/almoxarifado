@@ -19,3 +19,13 @@ export function IconeMetas() {
     </svg>
   )
 }
+
+export function IconeCampanhas() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 10v4a1 1 0 0 0 1 1h3l7 4V5L8 9H5a1 1 0 0 0-1 1Z" />
+      <path d="M8 15l1.5 4.5" />
+      <path d="M18.5 9.5a3.5 3.5 0 0 1 0 5" />
+    </svg>
+  )
+}
