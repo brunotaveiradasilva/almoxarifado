@@ -488,7 +488,26 @@ export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecial
       realizadoReais: Math.round((realizadoTotal * 15 + realizadoFoco * 20) * 100) / 100,
     }
   })
-  return new Promise((ok) => setTimeout(() => ok(especialistaPet.filter((c) => c.mes === mes)), 1500))
+  // Demora uns segundos subindo o progresso, como a busca página a página na ADS de verdade.
+  progressoEspecialistaPet.set(mes, 0)
+  return new Promise((ok) => {
+    const passo = setInterval(() => {
+      const atual = progressoEspecialistaPet.get(mes) ?? 0
+      if (atual >= 99) {
+        clearInterval(passo)
+        progressoEspecialistaPet.delete(mes)
+        ok(especialistaPet.filter((c) => c.mes === mes))
+      } else {
+        progressoEspecialistaPet.set(mes, Math.min(99, atual + 11))
+      }
+    }, 500)
+  })
+}
+
+const progressoEspecialistaPet = new Map<string, number>()
+
+export function progressoSincronizacaoEspecialistaPet(mes: string): Promise<number | null> {
+  return Promise.resolve(progressoEspecialistaPet.get(mes) ?? null)
 }
 
 /** Número entre 0 e 1 sempre igual pro mesmo texto — o mock devolve o mesmo resultado pro mesmo período. */

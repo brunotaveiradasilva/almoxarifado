@@ -338,3 +338,12 @@ export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecial
   if (MOCK) return mock.sincronizarEspecialistaPet(mes)
   return requisitar(`/api/especialista-pet/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
 }
+
+/** Quanto (0 a 100) já foi da sincronização em andamento do mês; null se ela não está rodando. */
+export async function progressoSincronizacaoEspecialistaPet(mes: string): Promise<number | null> {
+  if (MOCK) return mock.progressoSincronizacaoEspecialistaPet(mes)
+  const r: { percentual: number | null } = await requisitar(
+    `/api/especialista-pet/sincronizar/progresso?mes=${encodeURIComponent(mes)}`,
+  )
+  return r.percentual
+}

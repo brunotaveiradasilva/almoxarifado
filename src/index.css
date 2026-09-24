@@ -574,6 +574,10 @@
     animation: girar .8s linear infinite;
   }
   @keyframes girar { to { transform: rotate(360deg); } }
+  .carregando-tela-progresso { display: flex; align-items: center; gap: 12px; width: min(320px, calc(100vw - 64px)); }
+  .carregando-tela-trilha { flex: 1; height: 8px; border-radius: var(--pill); background: rgba(255, 255, 255, .25); overflow: hidden; }
+  .carregando-tela-barra { display: block; height: 100%; border-radius: var(--pill); background: #fff; transition: width .4s ease; }
+  .carregando-tela-pct { min-width: 3em; text-align: right; font-variant-numeric: tabular-nums; }
   @media (prefers-reduced-motion: reduce) { .carregando-tela-spinner { animation-duration: 2.4s; } }
 
   .meta-progress-cell { display: flex; align-items: center; gap: 10px; min-width: 140px; }
