@@ -29,7 +29,7 @@ const COR_BARRA: [number, number, number] = [0, 113, 227]
 const COR_COMPLETA: [number, number, number] = [52, 168, 83]
 
 /** Passa o logo por um canvas: o PNG original é entrelaçado, e o jsPDF lida melhor com a versão redesenhada. */
-function carregarLogo(): Promise<{ dados: string; proporcao: number }> {
+export function carregarLogo(): Promise<{ dados: string; proporcao: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => {
