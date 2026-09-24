@@ -41,6 +41,11 @@ export function rotuloMesCurto(mes: string): string {
   return `${nome[0].toUpperCase()}${nome.slice(1)}/${ano}`
 }
 
+/** Data de hoje pra nome de arquivo: "24-09-2026" (dia-mês-ano, sem barra, que não vale em nome de arquivo). */
+export function dataDeHojeParaArquivo(): string {
+  return new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replaceAll('/', '-')
+}
+
 /**
  * Meses que aparecem no filtro: do mais novo pro mais antigo, de 2 meses à frente (pra já cadastrar
  * a meta do mês que vem) até 12 meses atrás, mais qualquer mês que já tenha dado cadastrado.

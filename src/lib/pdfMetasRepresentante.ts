@@ -1,4 +1,4 @@
-import { rotuloMes, rotuloMesCurto } from './mes'
+import { dataDeHojeParaArquivo, rotuloMes, rotuloMesCurto } from './mes'
 import { formatarValorMeta } from './unidadeMeta'
 import { rotuloPeriodoMeta } from './periodoMeta'
 import type { MetaRepresentante, Meta } from '../types'
@@ -176,7 +176,7 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
     }
   }
 
-  const nomeArquivo = `metas-${representante}-${rotuloMesCurto(mes).replace('/', '-')}`
+  const nomeArquivo = `metas-${representante}-${rotuloMesCurto(mes).replace('/', '-')}-baixado-${dataDeHojeParaArquivo()}`
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-zA-Z0-9-]+/g, '-')
