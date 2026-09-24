@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { CarregandoTelaInteira } from './CarregandoTelaInteira'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { useEspecialistaPet } from '../hooks/useEspecialistaPet'
@@ -263,6 +264,10 @@ export function ConsultaEspecialistaPet() {
           </div>
         </>
       )}
+
+      {esp.ocupado === 'sincronizando' ? (
+        <CarregandoTelaInteira texto="Buscando as vendas do mês na ADS…" progresso={esp.progresso} />
+      ) : null}
     </div>
   )
 }

@@ -14,6 +14,8 @@ export function useEspecialistaPet() {
   const [carregando, setCarregando] = useState(true)
   const [ocupado, setOcupado] = useState<'importando' | 'sincronizando' | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  /** 0 a 100 enquanto sincroniza com a ADS; null fora disso. */
+  const [progresso, setProgresso] = useState<number | null>(null)
 
   const carregar = useCallback(async () => {
     setCarregando(true)
@@ -40,12 +42,28 @@ export function useEspecialistaPet() {
     async (mes: string) => {
       setErro(null)
       setOcupado('sincronizando')
+      setProgresso(0)
+      // A sincronização demora (busca o mês inteiro na ADS, página a página): enquanto ela não volta,
+      // pergunta a cada segundo quanto já foi. Falha aqui não importa, só deixa a barra parada.
+      let emAndamento = true
+      const acompanhar = setInterval(async () => {
+        try {
+          const p = await api.progressoSincronizacaoEspecialistaPet(mes)
+          // Resposta que chega depois de terminar não traz a barra de volta.
+          if (p !== null && emAndamento) setProgresso((atual) => Math.max(atual ?? 0, p))
+        } catch {
+          // ignora
+        }
+      }, 1000)
       try {
         substituirMes(mes, await api.sincronizarEspecialistaPet(mes))
       } catch (e) {
         setErro(mensagemErro(e))
       } finally {
+        emAndamento = false
+        clearInterval(acompanhar)
         setOcupado(null)
+        setProgresso(null)
       }
     },
     [substituirMes],
@@ -68,5 +86,5 @@ export function useEspecialistaPet() {
     [substituirMes, sincronizar],
   )
 
-  return { clientes, carregando, ocupado, erro, setErro, tentarNovamente: carregar, importar, sincronizar }
+  return { clientes, carregando, ocupado, progresso, erro, setErro, tentarNovamente: carregar, importar, sincronizar }
 }
