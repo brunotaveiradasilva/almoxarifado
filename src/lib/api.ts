@@ -287,20 +287,20 @@ export function excluirMetaRepresentante(id: string): Promise<void> {
 
 /** Filtros opcionais da busca de vendas por período — vazio é "todos". */
 export interface FiltrosVendasPeriodo {
-  representanteId?: string
-  fornecedorId?: string
+  representanteIds?: string[]
+  fornecedorIds?: string[]
 }
 
 /**
  * Vendas de um período (datas AAAA-MM-DD, até um ano) direto do histórico da ADS, por representante
- * do cadastro com código ADS (ou só o escolhido). Com fornecedorId, só o que as metas desse
- * fornecedor reconhecem (CNPJ ou divisões).
+ * do cadastro com código ADS (ou só os escolhidos). Com fornecedores, só o que as metas deles
+ * reconhecem (CNPJ ou divisões).
  */
 export function buscarVendasPeriodo(inicio: string, fim: string, filtros: FiltrosVendasPeriodo = {}): Promise<VendasPeriodo> {
   if (MOCK) return mock.buscarVendasPeriodo(inicio, fim, filtros)
   const params = new URLSearchParams({ inicio, fim })
-  if (filtros.representanteId) params.set('representanteId', filtros.representanteId)
-  if (filtros.fornecedorId) params.set('fornecedorId', filtros.fornecedorId)
+  for (const id of filtros.representanteIds ?? []) params.append('representanteId', id)
+  for (const id of filtros.fornecedorIds ?? []) params.append('fornecedorId', id)
   return requisitar(`/api/dados/vendas?${params}`)
 }
 

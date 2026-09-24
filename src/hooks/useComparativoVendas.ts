@@ -12,8 +12,10 @@ function mensagemErro(erro: unknown): string {
 export interface ConsultaVendas {
   atual: Periodo
   anterior: Periodo
-  representanteId: string
-  fornecedorId: string
+  /** Vazio = todos. */
+  representanteIds: string[]
+  /** Vazio = todos. */
+  fornecedorIds: string[]
 }
 
 /**
@@ -48,7 +50,7 @@ export function useComparativoVendas() {
     const busca = ++ultimaBusca.current
     setCarregando(true)
     setErro(null)
-    const filtros = { representanteId: consulta.representanteId, fornecedorId: consulta.fornecedorId }
+    const filtros = { representanteIds: consulta.representanteIds, fornecedorIds: consulta.fornecedorIds }
     try {
       const [atual, anterior] = await Promise.all([
         api.buscarVendasPeriodo(consulta.atual.inicio, consulta.atual.fim, filtros),

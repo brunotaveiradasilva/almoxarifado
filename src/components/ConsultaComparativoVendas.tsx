@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { EstadoVazio } from './EstadoVazio'
+import { SeletorMultiplo } from './SeletorMultiplo'
 import { useComparativoVendas, type ConsultaVendas } from '../hooks/useComparativoVendas'
 import {
   METRICAS,
@@ -18,7 +19,6 @@ import { mesAtual, rotuloMesCurto } from '../lib/mes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ValoresVenda } from '../types'
 
-const TODOS = ''
 const ZERO: ValoresVenda = { valor: 0, kg: 0, clientes: 0 }
 
 interface Linha {
@@ -34,9 +34,14 @@ function mesmaConsulta(a: ConsultaVendas, b: ConsultaVendas): boolean {
     a.atual.fim === b.atual.fim &&
     a.anterior.inicio === b.anterior.inicio &&
     a.anterior.fim === b.anterior.fim &&
-    a.representanteId === b.representanteId &&
-    a.fornecedorId === b.fornecedorId
+    mesmosIds(a.representanteIds, b.representanteIds) &&
+    mesmosIds(a.fornecedorIds, b.fornecedorIds)
   )
+}
+
+/** Mesma escolha, em qualquer ordem de clique. */
+function mesmosIds(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id))
 }
 
 /**
@@ -52,8 +57,9 @@ export function ConsultaComparativoVendas() {
   // Preenchidos com os períodos da comparação que estava escolhida quando a pessoa passa pra "Períodos livres".
   const [livreAtual, setLivreAtual] = useState<Periodo>({ inicio: '', fim: '' })
   const [livreAnterior, setLivreAnterior] = useState<Periodo>({ inicio: '', fim: '' })
-  const [representanteId, setRepresentanteId] = useState(TODOS)
-  const [fornecedorId, setFornecedorId] = useState(TODOS)
+  // Vazio = todos.
+  const [representanteIds, setRepresentanteIds] = useState<string[]>([])
+  const [fornecedorIds, setFornecedorIds] = useState<string[]>([])
   const [metrica, setMetrica] = useState<Metrica>('valor')
 
   const periodos = useMemo(
@@ -63,7 +69,7 @@ export function ConsultaComparativoVendas() {
         : periodosDaComparacao(tipo, mes, mesmoDia),
     [tipo, mes, mesmoDia, livreAtual, livreAnterior],
   )
-  const consulta: ConsultaVendas = { ...periodos, representanteId, fornecedorId }
+  const consulta: ConsultaVendas = { ...periodos, representanteIds, fornecedorIds }
   const erroPeriodo = erroDoPeriodo(periodos.atual) ?? erroDoPeriodo(periodos.anterior)
 
   const comp = useComparativoVendas()
@@ -91,7 +97,7 @@ export function ConsultaComparativoVendas() {
   // Rótulos do que foi buscado, não do que está nos filtros agora (podem ter mudado sem buscar de novo).
   const rotuloAtual = resultado ? rotuloPeriodo(resultado.consulta.atual) : ''
   const rotuloAnterior = resultado ? rotuloPeriodo(resultado.consulta.anterior) : ''
-  const buscouUmSo = resultado !== null && resultado.consulta.representanteId !== TODOS
+  const buscouUmSo = resultado !== null && resultado.consulta.representanteIds.length === 1
   const mesEmAndamento = tipo !== 'personalizado' && mes === mesAtual()
 
   function mudarTipo(novo: TipoComparacao) {
@@ -157,28 +163,24 @@ export function ConsultaComparativoVendas() {
         </div>
 
         <div className="consulta-filtros">
-          <div className="field consulta-filtro">
-            <label htmlFor="dados-representante">Representante</label>
-            <select id="dados-representante" value={representanteId} onChange={(e) => setRepresentanteId(e.target.value)}>
-              <option value={TODOS}>Todos os representantes</option>
-              {comp.representantes.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field consulta-filtro">
-            <label htmlFor="dados-fornecedor">Fornecedor</label>
-            <select id="dados-fornecedor" value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)}>
-              <option value={TODOS}>Todos os fornecedores</option>
-              {comp.fornecedores.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.nome}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SeletorMultiplo
+            id="dados-representante"
+            rotulo="Representante"
+            opcoes={comp.representantes.map((r) => ({ valor: r.id, rotulo: r.nome }))}
+            selecionados={representanteIds}
+            aoMudar={setRepresentanteIds}
+            textoTodos="Todos os representantes"
+            nomePlural="representantes"
+          />
+          <SeletorMultiplo
+            id="dados-fornecedor"
+            rotulo="Fornecedor"
+            opcoes={comp.fornecedores.map((f) => ({ valor: f.id, rotulo: f.nome }))}
+            selecionados={fornecedorIds}
+            aoMudar={setFornecedorIds}
+            textoTodos="Todos os fornecedores"
+            nomePlural="fornecedores"
+          />
           <div className="consulta-acoes">
             <button type="submit" className="btn btn-primary" disabled={!!erroPeriodo || comp.carregando}>
               {comp.carregando ? 'Buscando…' : 'Buscar'}
