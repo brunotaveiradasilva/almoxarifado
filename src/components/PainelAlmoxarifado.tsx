@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useAlmoxarifado } from '../hooks/useAlmoxarifado'
 import { calcularResumo, filtrarAgendamentos } from '../lib/regras'
-import { SUBABAS_MATERIAIS, type SubabaMateriais } from '../lib/navegacao'
+import { SUBABAS_MATERIAIS, type SubabaCampanhas, type SubabaMateriais } from '../lib/navegacao'
 import { PainelResumo } from './PainelResumo'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaAgendamentos } from './TabelaAgendamentos'
@@ -12,6 +12,7 @@ import { FormularioMaterial } from './FormularioMaterial'
 import { MinhaConta } from './MinhaConta'
 import { PainelUsuarios } from './PainelUsuarios'
 import { PainelMetas, type SubabaMetas } from './PainelMetas'
+import { PainelCampanhas } from './PainelCampanhas'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
 import type { Agendamento, Filtro, Material } from '../types'
 
@@ -38,6 +39,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
   const [aba, setAba] = useState<AbaPrincipal>('materiais')
   const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('agendamentos')
   const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>('fornecedores')
+  const [subabaCampanhas, setSubabaCampanhas] = useState<SubabaCampanhas>('especialistaPet')
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [buscaAgenda, setBuscaAgenda] = useState('')
   const [buscaMaterial, setBuscaMaterial] = useState('')
@@ -110,6 +112,8 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
           <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
         ) : aba === 'metas' ? (
           <PainelMetas subaba={subabaMetas} aoMudarSubaba={setSubabaMetas} />
+        ) : aba === 'campanhas' ? (
+          <PainelCampanhas subaba={subabaCampanhas} aoMudarSubaba={setSubabaCampanhas} />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">
@@ -280,7 +284,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
           </section>
         )}
 
-        {aba !== 'metas' ? (
+        {aba === 'materiais' ? (
           <footer className="foot">
             {app.materiais.length} material(is) cadastrado(s) · {app.agendamentos.length} agendamento(s). Os dados
             ficam no servidor — acessíveis de qualquer computador.
@@ -298,6 +302,8 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         aoMudarSubabaMateriais={setSubabaMateriais}
         subabaMetas={subabaMetas}
         aoMudarSubabaMetas={setSubabaMetas}
+        subabaCampanhas={subabaCampanhas}
+        aoMudarSubabaCampanhas={setSubabaCampanhas}
         aoAbrirUsuarios={() => setDialogoUsuarios(true)}
         aoAbrirConta={() => setDialogoConta(true)}
         aoSair={aoSair}

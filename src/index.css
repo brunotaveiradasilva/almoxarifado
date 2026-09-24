@@ -516,6 +516,22 @@
   .tabela-metas-representante th:last-child { width: 68px; }
   .tabela-metas-representante .row-actions { gap: 0; }
   .tabela-metas-representante .row-actions .btn-sm { padding: 4px 8px; }
+  /* ---------- campanha Especialista Pet ---------- */
+  .consulta-filtros .consulta-acoes { margin-left: auto; }
+  .meta-kpis-largo { max-width: 840px; }
+  .meta-card .tabela-especialista-pet { table-layout: fixed; min-width: 860px; }
+  .tabela-especialista-pet td { vertical-align: top; }
+  .ep-por-representante th:nth-child(1) { width: 26%; }
+  .ep-por-representante th:nth-child(2) { width: 9%; }
+  .ep-por-representante th:nth-child(3), .ep-por-representante th:nth-child(4) { width: 23%; }
+  .ep-por-representante th:nth-child(5) { width: 8%; }
+  .ep-clientes th:nth-child(1) { width: 34%; }
+  .ep-clientes th:nth-child(2), .ep-clientes th:nth-child(3) { width: 26%; }
+  .ep-progresso { display: flex; flex-direction: column; gap: 6px; }
+  .ep-progresso-valores { font-variant-numeric: tabular-nums; }
+  .linha-clicavel { cursor: pointer; }
+  .linha-clicavel:hover td { background: var(--surface-2); }
+
   /* Meta em kg: quanto o realizado deu em R$, mais discreto embaixo do nome. */
   .meta-em-reais { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--ink-3); }
 

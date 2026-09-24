@@ -2,6 +2,7 @@ import { sessaoSalva } from './auth'
 import * as mock from './apiMock'
 import type {
   Agendamento,
+  ClienteEspecialistaPet,
   Fornecedor,
   Material,
   Meta,
@@ -281,4 +282,35 @@ export function atualizarMetaRepresentante(id: string, mv: MetaRepresentanteEntr
 export function excluirMetaRepresentante(id: string): Promise<void> {
   if (MOCK) return mock.excluirMetaRepresentante(id)
   return requisitar(`/api/metas-representante/${id}`, { method: 'DELETE' })
+}
+
+/** Uma linha da aba CNPJ da planilha da PremieR, como vai pra API na importação. */
+export interface LinhaPlanilhaEspecialistaPet {
+  codigoCliente: string
+  nome: string
+  representante: string
+  classificacao: string
+  metaFoco: number
+  metaTotal: number
+}
+
+/** Clientes da campanha Especialista Pet, de todos os meses — a tela filtra pelo mês escolhido. */
+export function listarEspecialistaPet(): Promise<ClienteEspecialistaPet[]> {
+  if (MOCK) return mock.listarEspecialistaPet()
+  return requisitar('/api/especialista-pet')
+}
+
+/** Troca os clientes e metas do mês pelos da planilha. O realizado vem zerado — chame sincronizarEspecialistaPet depois. */
+export function importarEspecialistaPet(
+  mes: string,
+  clientes: LinhaPlanilhaEspecialistaPet[],
+): Promise<ClienteEspecialistaPet[]> {
+  if (MOCK) return mock.importarEspecialistaPet(mes, clientes)
+  return requisitar('/api/especialista-pet/importar', { method: 'POST', body: JSON.stringify({ mes, clientes }) })
+}
+
+/** Recalcula agora o realizado do mês a partir da ADS (o mês atual também roda sozinho todo dia). */
+export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecialistaPet[]> {
+  if (MOCK) return mock.sincronizarEspecialistaPet(mes)
+  return requisitar(`/api/especialista-pet/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
 }
