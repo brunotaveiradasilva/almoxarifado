@@ -164,7 +164,7 @@ export function ConsultaEspecialistaPet() {
                   <thead>
                     <tr>
                       <th rowSpan={2}>Cliente</th>
-                      <th colSpan={6} className="ep-grupo">
+                      <th colSpan={5} className="ep-grupo">
                         Produto foco NATTU (kg)
                       </th>
                       <th rowSpan={2} className="num">
@@ -186,7 +186,6 @@ export function ConsultaEspecialistaPet() {
                       <th className="num">Sem WILD</th>
                       <th className="num">Total</th>
                       <th className="num">Efet. volume</th>
-                      <th className="ep-centro">Efet. cliente</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -194,7 +193,6 @@ export function ConsultaEspecialistaPet() {
                       const desconto = descontoEspecialistaPet(c)
                       const focoWild = c.realizadoFocoWild ?? 0
                       const efetividadeFoco = c.metaFoco > 0 ? (c.realizadoFoco / c.metaFoco) * 100 : null
-                      const bateuFoco = efetividadeFoco !== null && efetividadeFoco >= 100
                       return (
                         <tr key={c.id}>
                           <td className="cell-material">
@@ -212,14 +210,6 @@ export function ConsultaEspecialistaPet() {
                             {efetividadeFoco === null
                               ? '—'
                               : `${efetividadeFoco.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
-                          </td>
-                          <td className="ep-centro">
-                            <span
-                              className={`ep-efetividade${bateuFoco ? ' is-ok' : ''}`}
-                              title={bateuFoco ? 'Bateu a meta do produto foco' : 'Não bateu a meta do produto foco'}
-                            >
-                              {bateuFoco ? '✓' : '✕'}
-                            </span>
                           </td>
                           <td className="num">
                             <Progresso meta={c.metaTotal} realizado={c.realizadoTotal} />

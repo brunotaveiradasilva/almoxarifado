@@ -519,26 +519,23 @@
   /* ---------- campanha Especialista Pet ---------- */
   .consulta-filtros .consulta-acoes { margin-left: auto; }
   .meta-kpis-largo { max-width: 840px; }
+  /* A tabela de clientes tem muitas colunas: nessa tela o conteúdo usa a largura toda, sem a rolagem lateral. */
+  main:has(.ep-clientes) { max-width: none; }
   .meta-card .tabela-especialista-pet { table-layout: fixed; min-width: 860px; }
   .tabela-especialista-pet td { vertical-align: top; }
   /* Muitas colunas: fonte e espaçamento menores, largura pelo conteúdo. */
-  .meta-card .ep-clientes { table-layout: auto; min-width: 1100px; }
+  .meta-card .ep-clientes { table-layout: auto; min-width: 0; }
   /* A regra global de 230px na primeira célula pegaria a "Meta" da segunda linha do cabeçalho. */
   .ep-clientes thead tr + tr th:first-child { min-width: 0; }
-  .ep-clientes thead th { padding: 10px 12px; font-size: 11px; }
-  .ep-clientes tbody td { padding: 12px; font-size: 13px; line-height: 1.45; }
-  .ep-clientes .cell-material { font-size: 13px; min-width: 200px; white-space: normal; }
+  .ep-clientes thead th { padding: 10px; font-size: 11px; white-space: normal; }
+  .ep-clientes tbody td { padding: 12px 10px; font-size: 13px; line-height: 1.45; }
+  .ep-clientes .cell-material { font-size: 13px; white-space: normal; }
+  .ep-clientes thead th:first-child, .ep-clientes tbody td:first-child { min-width: 170px; }
   .ep-clientes .meta-em-reais { font-size: 12px; }
   .ep-clientes .meta-progress-cell { min-width: 120px; }
   .ep-clientes .meta-progress-pct { font-size: 12px; }
   .ep-clientes thead th.ep-grupo { text-align: center; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--divider); }
   .ep-clientes thead tr:first-child th[rowspan] { vertical-align: bottom; }
-  .ep-centro { text-align: center !important; }
-  .ep-efetividade {
-    display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
-    font-size: 12px; font-weight: 700; color: #fff; background: var(--st-atrasado);
-  }
-  .ep-efetividade.is-ok { background: var(--st-devolvido); }
   .ep-desconto-total { font-weight: 600; }
   .ep-progresso { display: flex; flex-direction: column; gap: 6px; }
   .ep-progresso-valores { font-variant-numeric: tabular-nums; }
