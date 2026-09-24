@@ -1,4 +1,4 @@
-import { somarDias } from './datas'
+import { diasEntre, somarDias } from './datas'
 import { mesAtual, mesFechado, somarMeses } from './mes'
 import type {
   Agendamento,
@@ -12,6 +12,7 @@ import type {
   Status,
   TotalVendidoMensal,
   UnidadeMeta,
+  VendasPeriodo,
 } from '../types'
 
 /**
@@ -443,4 +444,47 @@ export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecial
     }
   })
   return new Promise((ok) => setTimeout(() => ok(especialistaPet.filter((c) => c.mes === mes)), 1500))
+}
+
+/** Número entre 0 e 1 sempre igual pro mesmo texto — o mock devolve o mesmo resultado pro mesmo período. */
+function sorteioFixo(texto: string): number {
+  let h = 2166136261
+  for (let i = 0; i < texto.length; i++) h = Math.imul(h ^ texto.charCodeAt(i), 16777619)
+  return ((h >>> 0) % 10000) / 10000
+}
+
+/**
+ * Sem ADS no mock: soma dia a dia um valor inventado (mas fixo) por representante, crescendo um
+ * pouco a cada ano, pra dar pra ver as comparações. Inclui um representante fora do cadastro.
+ */
+export function buscarVendasPeriodo(inicio: string, fim: string, fornecedorId?: string): Promise<VendasPeriodo> {
+  const vendedores = [
+    ...representantes.map((r, i) => ({ codigoAds: r.codigoAds || String(i + 1), representanteId: r.id as string | null, nome: r.nome })),
+    { codigoAds: '99', representanteId: null, nome: 'VENDEDOR SÓ NA ADS' },
+  ]
+  const fracaoFornecedor = fornecedorId ? 0.35 + sorteioFixo(fornecedorId) * 0.3 : 1
+  const linhas = vendedores.map((v) => {
+    let valor = 0
+    for (let dia = inicio; dia <= fim; dia = somarDias(1, new Date(`${dia}T12:00:00`))) {
+      const crescimento = 1 + (Number(dia.slice(0, 4)) - 2024) * 0.12
+      valor += sorteioFixo(`${v.codigoAds}|${dia}`) * 4200 * crescimento * fracaoFornecedor
+    }
+    valor = Math.round(valor * 100) / 100
+    const dias = diasEntre(inicio, fim) + 1
+    return {
+      ...v,
+      valores: {
+        valor,
+        kg: Math.round((valor / 14) * 10) / 10,
+        clientes: Math.round(Math.min(dias, 40) * (0.8 + sorteioFixo(`${v.codigoAds}|${inicio}|${fim}`) * 1.2) * fracaoFornecedor),
+      },
+    }
+  })
+  const total = linhas.reduce(
+    (t, l) => ({ valor: t.valor + l.valores.valor, kg: t.kg + l.valores.kg, clientes: t.clientes + l.valores.clientes }),
+    { valor: 0, kg: 0, clientes: 0 },
+  )
+  total.clientes = Math.round(total.clientes * 0.9) // um cliente pode comprar de dois representantes
+  const resultado: VendasPeriodo = { inicio, fim, representantes: linhas.sort((a, b) => b.valores.valor - a.valores.valor), total }
+  return new Promise((ok) => setTimeout(() => ok(resultado), 700))
 }

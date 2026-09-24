@@ -135,3 +135,31 @@ export interface Resumo {
 
 /** Filtro da lista de agendamentos. */
 export type Filtro = 'todos' | StatusExibido
+
+/** Vendas menos devoluções num período, sem bonificação — mesma regra do realizado das metas. */
+export interface ValoresVenda {
+  /** R$ do produto. */
+  valor: number
+  /** Peso bruto. */
+  kg: number
+  /** Clientes diferentes com saldo positivo em R$. */
+  clientes: number
+}
+
+/** Quanto foi vendido num período (aba Dados), direto da ADS — não depende do que foi sincronizado nas metas. */
+export interface VendasPeriodo {
+  /** AAAA-MM-DD */
+  inicio: string
+  /** AAAA-MM-DD */
+  fim: string
+  representantes: {
+    /** Id do representante na ADS — é por ele que os dois períodos se casam. */
+    codigoAds: string
+    /** Null se esse código ADS não está no cadastro de representantes. */
+    representanteId: string | null
+    nome: string
+    valores: ValoresVenda
+  }[]
+  /** Os clientes do total não se repetem: não é a soma dos clientes de cada representante. */
+  total: ValoresVenda
+}

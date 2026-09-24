@@ -12,6 +12,7 @@ import type {
   TotalVendidoMensal,
   UnidadeMeta,
   Representante,
+  VendasPeriodo,
 } from '../types'
 
 // Em desenvolvimento cai no back-end local (docker compose up na almoxarifado-api);
@@ -282,6 +283,17 @@ export function atualizarMetaRepresentante(id: string, mv: MetaRepresentanteEntr
 export function excluirMetaRepresentante(id: string): Promise<void> {
   if (MOCK) return mock.excluirMetaRepresentante(id)
   return requisitar(`/api/metas-representante/${id}`, { method: 'DELETE' })
+}
+
+/**
+ * Vendas de um período (datas AAAA-MM-DD, até um ano) direto do histórico da ADS, por representante.
+ * Com fornecedorId, só o que as metas desse fornecedor reconhecem (CNPJ ou divisões).
+ */
+export function buscarVendasPeriodo(inicio: string, fim: string, fornecedorId?: string): Promise<VendasPeriodo> {
+  if (MOCK) return mock.buscarVendasPeriodo(inicio, fim, fornecedorId)
+  const params = new URLSearchParams({ inicio, fim })
+  if (fornecedorId) params.set('fornecedorId', fornecedorId)
+  return requisitar(`/api/dados/vendas?${params}`)
 }
 
 /** Uma linha da aba CNPJ da planilha da PremieR, como vai pra API na importação. */

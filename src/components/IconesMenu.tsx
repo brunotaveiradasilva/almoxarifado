@@ -29,3 +29,14 @@ export function IconeCampanhas() {
     </svg>
   )
 }
+
+export function IconeDados() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 20h16" />
+      <rect x="5.5" y="11" width="3" height="6" rx="0.8" />
+      <rect x="10.5" y="7" width="3" height="10" rx="0.8" />
+      <rect x="15.5" y="4" width="3" height="13" rx="0.8" />
+    </svg>
+  )
+}

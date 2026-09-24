@@ -1,14 +1,16 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { IconeCampanhas, IconeMateriais, IconeMetas } from './IconesMenu'
+import { IconeCampanhas, IconeDados, IconeMateriais, IconeMetas } from './IconesMenu'
 import { SUBABAS_METAS, type SubabaMetas } from './PainelMetas'
 import {
   SUBABAS_CAMPANHAS,
+  SUBABAS_DADOS,
   SUBABAS_MATERIAIS,
   type SubabaCampanhas,
+  type SubabaDados,
   type SubabaMateriais,
 } from '../lib/navegacao'
 
-export type AbaPrincipal = 'materiais' | 'metas' | 'campanhas'
+export type AbaPrincipal = 'materiais' | 'metas' | 'campanhas' | 'dados'
 
 interface Props {
   aba: AbaPrincipal
@@ -22,6 +24,8 @@ interface Props {
   aoMudarSubabaMetas: (subaba: SubabaMetas) => void
   subabaCampanhas: SubabaCampanhas
   aoMudarSubabaCampanhas: (subaba: SubabaCampanhas) => void
+  subabaDados: SubabaDados
+  aoMudarSubabaDados: (subaba: SubabaDados) => void
   aoAbrirUsuarios: () => void
   aoAbrirConta: () => void
   aoSair: () => void
@@ -40,6 +44,8 @@ export function MenuLateral({
   aoMudarSubabaMetas,
   subabaCampanhas,
   aoMudarSubabaCampanhas,
+  subabaDados,
+  aoMudarSubabaDados,
   aoAbrirUsuarios,
   aoAbrirConta,
   aoSair,
@@ -99,6 +105,16 @@ export function MenuLateral({
               ...s,
               ativo: subabaCampanhas === s.valor,
               escolher: () => aoMudarSubabaCampanhas(s.valor),
+            })),
+          },
+          {
+            aba: 'dados' as const,
+            rotulo: 'Dados',
+            icone: <IconeDados />,
+            subitens: SUBABAS_DADOS.map((s) => ({
+              ...s,
+              ativo: subabaDados === s.valor,
+              escolher: () => aoMudarSubabaDados(s.valor),
             })),
           },
         ]
