@@ -24,9 +24,10 @@ export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, ao
     <tr>
       <td className="cell-material">{representanteNome}</td>
       <td>{meta.nome}</td>
-      <td className="num">{atribuicao ? formatar(metaNum) : '—'}</td>
+      {/* Meta 0 é "sem meta": a sincronização cria a linha só pra guardar o realizado. */}
+      <td className="num">{percentual === null ? '—' : formatar(metaNum)}</td>
       <td className="num">{formatar(realizadoNum)}</td>
-      <td className="num">{formatar(falta)}</td>
+      <td className="num">{percentual === null ? '—' : formatar(falta)}</td>
       <td className="num">
         <div className="meta-progress-cell">
           <span className="meta-progress-track">

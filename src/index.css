@@ -13,6 +13,7 @@
     --divider: #EDEDF0;
     --ink: #1D1D1F;
     --ink-2: #6E6E73;
+    --seta-select: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 fill=%27none%27%3E%3Cpath d=%27M3 4.5L6 7.5L9 4.5%27 stroke=%27%236E6E73%27 stroke-width=%271.5%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E");
     --ink-3: #86868B;
     --accent: #0071E3;
     --accent-hover: #0077ED;
@@ -42,6 +43,7 @@
       --divider: #2C2C2E;
       --ink: #F5F5F7;
       --ink-2: #A1A1A6;
+      --seta-select: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 fill=%27none%27%3E%3Cpath d=%27M3 4.5L6 7.5L9 4.5%27 stroke=%27%23A1A1A6%27 stroke-width=%271.5%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E");
       --ink-3: #86868B;
       --accent: #2997FF;
       --accent-hover: #47A6FF;
@@ -65,6 +67,7 @@
     --divider: #2C2C2E;
     --ink: #F5F5F7;
     --ink-2: #A1A1A6;
+    --seta-select: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27 fill=%27none%27%3E%3Cpath d=%27M3 4.5L6 7.5L9 4.5%27 stroke=%27%23A1A1A6%27 stroke-width=%271.5%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E");
     --ink-3: #86868B;
     --accent: #2997FF;
     --accent-hover: #47A6FF;
@@ -448,11 +451,18 @@
   }
   :root[data-theme="dark"] .field input,
   :root[data-theme="dark"] .field select,
-  :root[data-theme="dark"] .field textarea { background: var(--surface-2); }
+  :root[data-theme="dark"] .field textarea { background-color: var(--surface-2); }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) .field input,
     :root:not([data-theme="light"]) .field select,
-    :root:not([data-theme="light"]) .field textarea { background: var(--surface-2); }
+    :root:not([data-theme="light"]) .field textarea { background-color: var(--surface-2); }
+  }
+  /* Seta própria no lugar da nativa (que fica colada na borda), com o mesmo recuo do SeletorMultiplo. */
+  .field select {
+    appearance: none; -webkit-appearance: none; cursor: pointer;
+    background-image: var(--seta-select); background-repeat: no-repeat;
+    background-position: right 14px center; background-size: 12px 12px;
+    padding-right: 38px;
   }
   .field textarea { resize: vertical; min-height: 66px; font-family: inherit; }
   .field .hint { font-size: 13px; color: var(--ink-3); }
@@ -472,7 +482,7 @@
   }
 
   .consulta-filtro { max-width: 360px; margin-bottom: 14px; }
-  .consulta-filtro select { font-size: 16px; padding: 11px 14px; }
+  .consulta-filtro select { font-size: 16px; padding: 11px 38px 11px 14px; }
   /* Filtro principal + mês lado a lado; no celular um embaixo do outro. */
   .consulta-filtros { display: flex; flex-wrap: wrap; gap: 0 14px; align-items: flex-end; }
   .consulta-filtros .consulta-filtro { flex: 1 1 260px; }

@@ -65,11 +65,13 @@ export function ConsultaMetasPorFornecedor({
   )
 
   // O que dá pra trazer do mês anterior: tem valor lá e ainda não tem neste mês (a API só copia isso).
+  // Valor 0 é "sem meta" — a linha que a sincronização cria só pra guardar o realizado.
   const paraCopiar = metasRepresentante.filter(
     (mv) =>
       mv.mes === mesAnterior &&
+      mv.valorMeta > 0 &&
       mv.meta.fornecedor.id === fornecedorId &&
-      !atribuicaoDe(mv.representante.id, mv.meta.id),
+      !atribuicaoDe(mv.representante.id, mv.meta.id)?.valorMeta,
   ).length
 
   const fornecedor = fornecedores.find((f) => f.id === fornecedorId) ?? null

@@ -82,14 +82,14 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
   doc.text(`Metas de ${mesTexto}`, margem, topo + 7)
 
   let y = topo + 15
-  if (progressoMedio !== null) {
+  if (progressoMedio !== null || totalVendido !== null) {
     doc.setFontSize(9)
     doc.text('Progresso médio', margem, y)
     if (totalVendido !== null) doc.text('Total vendido', margem + 60, y)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
     doc.setTextColor(...COR_TEXTO)
-    doc.text(pct(progressoMedio), margem, y + 7)
+    doc.text(progressoMedio === null ? '-' : pct(progressoMedio), margem, y + 7)
     if (totalVendido !== null) {
       doc.text(totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), margem + 60, y + 7)
     }
@@ -120,9 +120,9 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
         meta.unidade === 'KG' && atribuicao?.realizadoEmReais != null
           ? `${meta.nome}\n${formatarValorMeta(atribuicao.realizadoEmReais, 'REAL')}`
           : meta.nome,
-        atribuicao ? formatarValorMeta(valorMeta, meta.unidade) : '-',
+        percentual === null ? '-' : formatarValorMeta(valorMeta, meta.unidade),
         atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '-',
-        atribuicao ? formatarValorMeta(falta, meta.unidade) : '-',
+        percentual === null ? '-' : formatarValorMeta(falta, meta.unidade),
         percentual === null ? '-' : pct(percentual),
       ]),
       theme: 'plain',

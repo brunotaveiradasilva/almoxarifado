@@ -142,7 +142,8 @@ export function ConsultaMetasPorRepresentante({
         </button>
       </div>
 
-      {comMeta.length ? (
+      {/* Sempre aparece: o total vendido vale mesmo pra quem não tem meta no mês. */}
+      {representante ? (
         <div className="stats meta-kpis">
           <div className="stat">
             <span className="label">Progresso médio</span>
@@ -221,9 +222,9 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
                       <span className="meta-em-reais">{formatarValorMeta(atribuicao.realizadoEmReais, 'REAL')}</span>
                     ) : null}
                   </td>
-                  <td className="num">{atribuicao ? formatarValorMeta(valorMeta, meta.unidade) : '—'}</td>
+                  <td className="num">{percentual === null ? '—' : formatarValorMeta(valorMeta, meta.unidade)}</td>
                   <td className="num">{atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '—'}</td>
-                  <td className="num">{atribuicao ? formatarValorMeta(falta, meta.unidade) : '—'}</td>
+                  <td className="num">{percentual === null ? '—' : formatarValorMeta(falta, meta.unidade)}</td>
                   <td className="num">
                     <div className="meta-progress-cell">
                       <span className="meta-progress-track">

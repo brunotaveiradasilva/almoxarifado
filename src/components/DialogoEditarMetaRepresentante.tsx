@@ -21,7 +21,7 @@ const formatar = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigit
 export function DialogoEditarMetaRepresentante({ representante, meta, mes, atribuicao, aoFechar, aoSalvar }: Props) {
   const valorAtual = atribuicao?.valorMeta ?? 0
   const [passo, setPasso] = useState<'editar' | 'confirmar' | 'sucesso'>('editar')
-  const [valor, setValor] = useState(atribuicao ? String(atribuicao.valorMeta) : '')
+  const [valor, setValor] = useState(atribuicao?.valorMeta ? String(atribuicao.valorMeta) : '')
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
 
