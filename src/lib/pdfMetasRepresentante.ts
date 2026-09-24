@@ -176,7 +176,7 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
     }
   }
 
-  const nomeArquivo = `metas-${representante}-${rotuloMesCurto(mes).replace('/', '-')}-baixado-${dataDeHojeParaArquivo()}`
+  const nomeArquivo = `metas-${representante}-${rotuloMesCurto(mes).replace('/', '-')}-${dataDeHojeParaArquivo()}`
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-zA-Z0-9-]+/g, '-')
