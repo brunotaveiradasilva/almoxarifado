@@ -375,21 +375,32 @@ export function atualizarMetaRepresentante(id: string, mv: MetaRepresentanteEntr
   return Promise.resolve(atualizado)
 }
 
-/** Como a API: copia só o que o mês de destino ainda não tem, com realizado zerado. */
+/**
+ * Como a API: copia só o que o mês de destino ainda não tem (a linha "sem meta", valor 0, conta como vazia e
+ * ganha o valor, mantendo o realizado); o que não existia entra com realizado zerado.
+ */
 export function copiarMetasRepresentante(de: string, para: string, fornecedorId?: string): Promise<MetaRepresentante[]> {
   const fechado = recusarSeFechado(para)
   if (fechado) return fechado
-  const criadas = metasRepresentante
-    .filter((m) => m.mes === de && (!fornecedorId || m.meta.fornecedor.id === fornecedorId))
-    .filter(
-      (m) =>
-        !metasRepresentante.some(
-          (outra) => outra.mes === para && outra.representante.id === m.representante.id && outra.meta.id === m.meta.id,
-        ),
+  const copiadas: MetaRepresentante[] = []
+  for (const m of metasRepresentante) {
+    if (m.mes !== de || m.valorMeta <= 0 || (fornecedorId && m.meta.fornecedor.id !== fornecedorId)) continue
+    const destino = metasRepresentante.find(
+      (outra) => outra.mes === para && outra.representante.id === m.representante.id && outra.meta.id === m.meta.id,
     )
-    .map((m): MetaRepresentante => ({ ...m, id: novoId('mrp'), mes: para, valorRealizado: 0, realizadoEmReais: null }))
-  metasRepresentante = [...metasRepresentante, ...criadas]
-  return Promise.resolve(criadas)
+    if (destino && destino.valorMeta > 0) continue
+    copiadas.push(
+      destino
+        ? { ...destino, valorMeta: m.valorMeta }
+        : { ...m, id: novoId('mrp'), mes: para, valorRealizado: 0, realizadoEmReais: null },
+    )
+  }
+  const porId = new Map(copiadas.map((m) => [m.id, m]))
+  metasRepresentante = [
+    ...metasRepresentante.map((m) => porId.get(m.id) ?? m),
+    ...copiadas.filter((c) => !metasRepresentante.some((m) => m.id === c.id)),
+  ]
+  return Promise.resolve(copiadas)
 }
 
 export function excluirMetaRepresentante(id: string): Promise<void> {
@@ -397,8 +408,33 @@ export function excluirMetaRepresentante(id: string): Promise<void> {
   return Promise.resolve()
 }
 
-/** No mock não tem ADS de verdade pra consultar — devolve a lista como está (nenhum representante/meta de exemplo tem código ADS cadastrado). */
+/**
+ * No mock não tem ADS de verdade pra consultar — mantém o realizado de quem já tem, e como a API cria a linha
+ * "sem meta" (valor 0) com um realizado inventado pras metas dos fornecedores de cada representante que ainda
+ * não têm valor no mês.
+ */
 export function sincronizarMetasRepresentante(mes: string): Promise<MetaRepresentante[]> {
+  const novas: MetaRepresentante[] = []
+  for (const representante of representantes) {
+    for (const meta of metas) {
+      if (!representante.fornecedores.some((f) => f.id === meta.fornecedor.id)) continue
+      const jaTem = metasRepresentante.some(
+        (m) => m.mes === mes && m.representante.id === representante.id && m.meta.id === meta.id,
+      )
+      if (jaTem) continue
+      const realizado = meta.unidade === 'REAL' ? Math.round(Math.random() * 40000) : Math.round(Math.random() * 400)
+      novas.push({
+        id: novoId('mrp'),
+        representante,
+        meta,
+        mes,
+        valorMeta: 0,
+        valorRealizado: realizado,
+        realizadoEmReais: meta.unidade === 'KG' ? realizado * 5 : null,
+      })
+    }
+  }
+  metasRepresentante = [...metasRepresentante, ...novas]
   // Demora um pouco, como a ADS de verdade, pra dar pra ver o carregamento da tela.
   return new Promise((ok) => setTimeout(() => ok(metasRepresentante.filter((m) => m.mes === mes)), 1500))
 }

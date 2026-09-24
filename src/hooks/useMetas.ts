@@ -9,6 +9,14 @@ function mensagemErro(erro: unknown): string {
   return erro instanceof ErroApi ? erro.message : 'Algo deu errado. Tente de novo.'
 }
 
+/** Troca as que já estão na lista (mesmo id) e acrescenta as novas no fim. */
+function mesclarPorId(atual: MetaRepresentante[], vindas: MetaRepresentante[]): MetaRepresentante[] {
+  const porId = new Map(vindas.map((m) => [m.id, m]))
+  const trocadas = atual.map((m) => porId.get(m.id) ?? m)
+  const ids = new Set(atual.map((m) => m.id))
+  return [...trocadas, ...vindas.filter((m) => !ids.has(m.id))]
+}
+
 /**
  * Estado dos cadastros de apoio às metas — fornecedores, representantes e metas —, só para quem é
  * admin. Mesmo padrão otimista do useAlmoxarifado: atualiza a tela na hora e confirma com a API
@@ -239,9 +247,9 @@ export function useMetas() {
     setErro(null)
     setSincronizando(true)
     try {
+      // A sincronização também cria linhas novas (valor 0, "sem meta") pra guardar o realizado de quem não tem meta.
       const atualizadas = await api.sincronizarMetasRepresentante(mes)
-      const porId = new Map(atualizadas.map((m) => [m.id, m]))
-      setMetasRepresentante((atual) => atual.map((m) => porId.get(m.id) ?? m))
+      setMetasRepresentante((atual) => mesclarPorId(atual, atualizadas))
       setTotaisVendidos(await api.listarTotaisVendidos())
     } catch (e) {
       setErro(mensagemErro(e))
@@ -250,11 +258,14 @@ export function useMetas() {
     }
   }, [])
 
-  /** Copia os valores de meta do mês `de` pro `para` (só o que falta no destino). Devolve quantas foram criadas; erro sobe pra quem chamou. */
+  /**
+   * Copia os valores de meta do mês `de` pro `para` (só o que falta no destino — a linha "sem meta" conta como
+   * falta e é preenchida). Devolve quantas foram copiadas; erro sobe pra quem chamou.
+   */
   const copiarMetasDoMes = useCallback(async (de: string, para: string, fornecedorId?: string): Promise<number> => {
     setErro(null)
     const criadas = await api.copiarMetasRepresentante(de, para, fornecedorId)
-    setMetasRepresentante((atual) => [...atual, ...criadas])
+    setMetasRepresentante((atual) => mesclarPorId(atual, criadas))
     return criadas.length
   }, [])
 
