@@ -1,4 +1,4 @@
-import { rotuloMes, rotuloMesCurto } from './mes'
+import { dataDeHojeParaArquivo, rotuloMes, rotuloMesCurto } from './mes'
 import { formatarValorMeta } from './unidadeMeta'
 import { descontoEspecialistaPet } from './especialistaPet'
 import { carregarLogo } from './pdfMetasRepresentante'
@@ -143,7 +143,7 @@ export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados)
   })
 
   const quem = representantes.length === 1 ? representantes[0].nome : 'todos'
-  const nomeArquivo = `especialista-pet-${quem}-${rotuloMesCurto(mes).replace('/', '-')}`
+  const nomeArquivo = `especialista-pet-${quem}-${rotuloMesCurto(mes).replace('/', '-')}-baixado-${dataDeHojeParaArquivo()}`
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-zA-Z0-9-]+/g, '-')
