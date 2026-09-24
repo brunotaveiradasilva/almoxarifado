@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useAlmoxarifado } from '../hooks/useAlmoxarifado'
 import { calcularResumo, filtrarAgendamentos } from '../lib/regras'
-import { SUBABAS_MATERIAIS, type SubabaCampanhas, type SubabaMateriais } from '../lib/navegacao'
+import { SUBABAS_MATERIAIS, type SubabaCampanhas, type SubabaDados, type SubabaMateriais } from '../lib/navegacao'
 import { PainelResumo } from './PainelResumo'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaAgendamentos } from './TabelaAgendamentos'
@@ -13,6 +13,7 @@ import { MinhaConta } from './MinhaConta'
 import { PainelUsuarios } from './PainelUsuarios'
 import { PainelMetas, type SubabaMetas } from './PainelMetas'
 import { PainelCampanhas } from './PainelCampanhas'
+import { PainelDados } from './PainelDados'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
 import type { Agendamento, Filtro, Material } from '../types'
 
@@ -40,6 +41,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
   const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('agendamentos')
   const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>('fornecedores')
   const [subabaCampanhas, setSubabaCampanhas] = useState<SubabaCampanhas>('especialistaPet')
+  const [subabaDados, setSubabaDados] = useState<SubabaDados>('comparativo')
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [buscaAgenda, setBuscaAgenda] = useState('')
   const [buscaMaterial, setBuscaMaterial] = useState('')
@@ -114,6 +116,8 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
           <PainelMetas subaba={subabaMetas} aoMudarSubaba={setSubabaMetas} />
         ) : aba === 'campanhas' ? (
           <PainelCampanhas subaba={subabaCampanhas} aoMudarSubaba={setSubabaCampanhas} />
+        ) : aba === 'dados' ? (
+          <PainelDados subaba={subabaDados} aoMudarSubaba={setSubabaDados} />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">
@@ -304,6 +308,8 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         aoMudarSubabaMetas={setSubabaMetas}
         subabaCampanhas={subabaCampanhas}
         aoMudarSubabaCampanhas={setSubabaCampanhas}
+        subabaDados={subabaDados}
+        aoMudarSubabaDados={setSubabaDados}
         aoAbrirUsuarios={() => setDialogoUsuarios(true)}
         aoAbrirConta={() => setDialogoConta(true)}
         aoSair={aoSair}

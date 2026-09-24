@@ -12,3 +12,10 @@ export type SubabaCampanhas = 'especialistaPet'
 export const SUBABAS_CAMPANHAS: { valor: SubabaCampanhas; rotulo: string }[] = [
   { valor: 'especialistaPet', rotulo: 'Especialista Pet' },
 ]
+
+/** Subabas da área de Dados. */
+export type SubabaDados = 'comparativo'
+
+export const SUBABAS_DADOS: { valor: SubabaDados; rotulo: string }[] = [
+  { valor: 'comparativo', rotulo: 'Comparativo de vendas' },
+]

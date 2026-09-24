@@ -578,6 +578,28 @@
   }
   .hint.warn { color: var(--st-atrasado); }
 
+  /* ---------- dados: comparativo de vendas ---------- */
+  /* Enquanto busca a ADS, os números antigos continuam na tela, só apagados. */
+  .comparativo .meta-kpis, .comparativo .meta-card { transition: opacity .18s ease; }
+  .comparativo.is-carregando .meta-kpis, .comparativo.is-carregando .meta-card { opacity: .55; }
+  .comparativo-intervalo .comparativo-intervalo-datas { display: flex; align-items: center; gap: 8px; color: var(--ink-3); font-size: 13px; }
+  .comparativo-intervalo input[type="date"] { font-size: 15px; padding: 10px 11px; min-width: 0; }
+  .comparativo-check {
+    display: flex; align-items: center; gap: 8px; margin: 0 0 24px; font-size: 14px; color: var(--ink-2); cursor: pointer;
+  }
+  .comparativo-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+  .comparativo-metrica { margin-bottom: 14px; }
+  .comparativo-metrica-rotulo { font-size: 13px; color: var(--ink-2); }
+  .comparativo-metrica .filters button { padding: 10px 18px; font-size: 14px; }
+  .comparativo-aviso { margin: 12px 0 0; font-size: 13px; }
+  /* A etiqueta com os dois períodos é longa: no celular desce pra baixo do título em vez de cortar. */
+  .comparativo .meta-card-head { flex-wrap: wrap; }
+  .comparativo .meta-badge { white-space: normal; }
+  .tabela-comparativo tfoot td { padding: 16px 20px; font-size: 14px; font-weight: 600; border-top: 1px solid var(--line); }
+  .variacao { font-variant-numeric: tabular-nums; color: var(--ink-3); }
+  .variacao.is-alta { color: var(--st-devolvido); }
+  .variacao.is-baixa { color: var(--st-atrasado); }
+
   .bloco-representante { margin-bottom: 28px; }
   .bloco-representante:last-child { margin-bottom: 0; }
 

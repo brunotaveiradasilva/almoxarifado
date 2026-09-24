@@ -20,6 +20,7 @@ Quem empresta equipamento — almoxarifado, escola, locadora, equipe de campo �
 - Busca por material, responsável, cliente ou observação, e filtros por status
 - Sugestão automática de clientes já cadastrados
 - Barra de ocupação por material (quanto está fora do estoque)
+- Aba **Dados** (só ADMIN): compara quanto cada representante vendeu num período contra outro — mês × mesmo mês do ano anterior, mês × mês anterior, acumulado do ano ou períodos livres —, com filtro de representante e fornecedor, em R$, kg ou clientes. Os números vêm direto da ADS, então valem pra qualquer mês passado
 - Tema claro e escuro, seguindo a preferência do sistema
 - Dados centralizados na [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api): o mesmo cadastro aparece em qualquer computador
 - Login obrigatório: nada do almoxarifado carrega sem entrar com usuário e senha
