@@ -60,7 +60,7 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
   const margem = 14
   const largura = doc.internal.pageSize.getWidth()
 
-  const larguraLogo = 50
+  const larguraLogo = 36
   const alturaLogo = larguraLogo * logo.proporcao
   doc.addImage(logo.dados, 'PNG', margem, 10, larguraLogo, alturaLogo)
 
