@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { EstadoVazio } from './EstadoVazio'
+import { CarregandoTelaInteira } from './CarregandoTelaInteira'
 import { SeletorMultiplo } from './SeletorMultiplo'
 import { useComparativoVendas, type ConsultaVendas } from '../hooks/useComparativoVendas'
 import {
@@ -116,6 +117,9 @@ export function ConsultaComparativoVendas() {
 
   return (
     <div className={comp.carregando ? 'comparativo is-carregando' : 'comparativo'}>
+      {/* Trava a tela enquanto busca, pra ninguém mexer nos filtros no meio da consulta. */}
+      {comp.carregando ? <CarregandoTelaInteira texto="Buscando as vendas na ADS… pode levar alguns segundos." /> : null}
+
       {comp.erro ? (
         <div className="banner-erro" role="alert">
           <span>{comp.erro}</span>
