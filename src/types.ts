@@ -68,6 +68,14 @@ export interface Meta {
   produtosIncluidos: string | null
   /** Posição nas listas da tela (0 primeiro). A API já devolve as metas nessa ordem; null em metas antigas, que vão pro fim. */
   ordem: number | null
+  /** Texto livre explicando a meta. Null se não tiver. */
+  descricao: string | null
+  /**
+   * Período da meta dentro do mês, em dias (ex.: 1 a 19): só as vendas faturadas nesses dias contam.
+   * Os dois null = mês inteiro. Fim 31 num mês de 30 dias vale até o último dia.
+   */
+  diaInicio: number | null
+  diaFim: number | null
 }
 
 /** O valor de uma meta atribuído a um representante num mês: quanto ele precisa bater e quanto já bateu. */

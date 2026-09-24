@@ -100,9 +100,9 @@ let representantes: Representante[] = [
 ]
 
 let metas: Meta[] = [
-  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 0 },
-  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 1 },
-  { id: novoId('met'), nome: 'Ração Premium', fornecedor: fornecedores[0], unidade: 'KG', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 2 },
+  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 0, descricao: null, diaInicio: null, diaFim: null },
+  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 1, descricao: null, diaInicio: null, diaFim: null },
+  { id: novoId('met'), nome: 'Ração Premium', fornecedor: fornecedores[0], unidade: 'KG', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 2, descricao: null, diaInicio: null, diaFim: null },
 ]
 
 // Mês atual e o anterior, pra dar pra testar o filtro de mês e o "copiar do mês anterior".
@@ -273,6 +273,9 @@ interface MetaEntradaMock {
   cnpjAdsFornecedor: string
   produtosExcluidos: string
   produtosIncluidos: string
+  descricao: string
+  diaInicio: number | null
+  diaFim: number | null
 }
 
 export function listarMetas(): Promise<Meta[]> {
@@ -288,6 +291,9 @@ export function criarMeta(meta: MetaEntradaMock): Promise<Meta> {
     cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     produtosExcluidos: meta.produtosExcluidos,
     produtosIncluidos: meta.produtosIncluidos,
+    descricao: meta.descricao.trim() || null,
+    diaInicio: meta.diaInicio,
+    diaFim: meta.diaFim,
     ordem: metas.length,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
@@ -304,6 +310,9 @@ export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> 
     cnpjAdsFornecedor: meta.cnpjAdsFornecedor,
     produtosExcluidos: meta.produtosExcluidos,
     produtosIncluidos: meta.produtosIncluidos,
+    descricao: meta.descricao.trim() || null,
+    diaInicio: meta.diaInicio,
+    diaFim: meta.diaFim,
     ordem: metas.find((m) => m.id === id)?.ordem ?? null,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }

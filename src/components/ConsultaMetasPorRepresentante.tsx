@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { BotoesOrdemMeta } from './BotoesOrdemMeta'
+import { DetalhesMeta } from './DetalhesMeta'
 import { DialogoExportarPdf } from './DialogoExportarPdf'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
@@ -221,6 +222,7 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
                     {meta.unidade === 'KG' && atribuicao?.realizadoEmReais != null ? (
                       <span className="meta-em-reais">{formatarValorMeta(atribuicao.realizadoEmReais, 'REAL')}</span>
                     ) : null}
+                    <DetalhesMeta meta={meta} />
                   </td>
                   <td className="num">{percentual === null ? '—' : formatarValorMeta(valorMeta, meta.unidade)}</td>
                   <td className="num">{atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '—'}</td>

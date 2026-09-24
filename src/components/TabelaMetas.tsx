@@ -1,4 +1,5 @@
 import { BotoesOrdemMeta } from './BotoesOrdemMeta'
+import { DetalhesMeta } from './DetalhesMeta'
 import { ROTULO_UNIDADE_META } from '../lib/unidadeMeta'
 import type { Meta } from '../types'
 
@@ -15,7 +16,10 @@ export function TabelaMetas({ metas, aoEditar, aoExcluir, aoTrocarOrdem }: Props
     <tbody>
       {metas.map((m, i) => (
         <tr key={m.id}>
-          <td className="cell-material">{m.nome}</td>
+          <td className="cell-material">
+            {m.nome}
+            <DetalhesMeta meta={m} />
+          </td>
           <td>{m.fornecedor.nome}</td>
           <td>{ROTULO_UNIDADE_META[m.unidade]}</td>
           <td className="actions-cell">

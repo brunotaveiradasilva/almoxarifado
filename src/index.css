@@ -552,6 +552,14 @@
 
   /* Meta em kg: quanto o realizado deu em R$, mais discreto embaixo do nome. */
   .meta-em-reais { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--ink-3); }
+  /* Período e descrição embaixo do nome da meta. */
+  .meta-detalhe { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--ink-2); white-space: normal; max-width: 360px; }
+  .meta-periodo {
+    display: block; width: fit-content; margin-top: 4px; padding: 1px 8px; border-radius: var(--pill);
+    background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 500;
+  }
+  .periodo-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 14px; color: var(--ink-2); }
+  .field .periodo-meta input { width: 76px; }
 
   /* Tela inteira bloqueada enquanto sincroniza com a ADS, pra ninguém mexer no meio. */
   .carregando-tela {

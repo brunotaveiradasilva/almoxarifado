@@ -20,12 +20,24 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
   const [cnpjAdsFornecedor, setCnpjAdsFornecedor] = useState(meta?.cnpjAdsFornecedor ?? '')
   const [produtosIncluidos, setProdutosIncluidos] = useState(meta?.produtosIncluidos ?? '')
   const [produtosExcluidos, setProdutosExcluidos] = useState(meta?.produtosExcluidos ?? '')
+  const [descricao, setDescricao] = useState(meta?.descricao ?? '')
+  const [comPeriodo, setComPeriodo] = useState(meta?.diaInicio != null && meta?.diaFim != null)
+  const [diaInicio, setDiaInicio] = useState(meta?.diaInicio != null ? String(meta.diaInicio) : '1')
+  const [diaFim, setDiaFim] = useState(meta?.diaFim != null ? String(meta.diaFim) : '31')
   const [erro, setErro] = useState('')
 
   function confirmar() {
     const nomeLimpo = nome.trim()
     if (!nomeLimpo) return setErro('Informe o nome da meta.')
     if (!fornecedorId) return setErro('Selecione o fornecedor.')
+
+    const inicio = Number(diaInicio)
+    const fim = Number(diaFim)
+    if (comPeriodo) {
+      const diaValido = (d: number) => Number.isInteger(d) && d >= 1 && d <= 31
+      if (!diaValido(inicio) || !diaValido(fim)) return setErro('Os dias do período vão de 1 a 31.')
+      if (inicio > fim) return setErro('O dia inicial do período tem que vir antes do final.')
+    }
 
     aoSalvar(
       {
@@ -36,6 +48,9 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
         cnpjAdsFornecedor: cnpjAdsFornecedor.trim(),
         produtosExcluidos: produtosExcluidos.trim(),
         produtosIncluidos: produtosIncluidos.trim(),
+        descricao: descricao.trim(),
+        diaInicio: comPeriodo ? inicio : null,
+        diaFim: comPeriodo ? fim : null,
       },
       meta?.id,
     )
@@ -59,6 +74,59 @@ export function FormularioMeta({ meta, fornecedores, aoFechar, aoSalvar }: Props
           value={nome}
           onChange={(e) => setNome(e.target.value)}
         />
+      </div>
+
+      <div className="field">
+        <label htmlFor="me-descricao">Descrição</label>
+        <textarea
+          id="me-descricao"
+          maxLength={500}
+          placeholder="Ex.: Campanha da primeira quinzena, vale só pra ração seca"
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+        />
+        <p className="hint">Opcional. Aparece embaixo do nome da meta nas telas de consulta.</p>
+      </div>
+
+      <div className="field">
+        <label htmlFor="me-periodo">Período</label>
+        <select
+          id="me-periodo"
+          value={comPeriodo ? 'dias' : 'mes'}
+          onChange={(e) => setComPeriodo(e.target.value === 'dias')}
+        >
+          <option value="mes">Mês inteiro</option>
+          <option value="dias">Só alguns dias do mês</option>
+        </select>
+        {comPeriodo ? (
+          <div className="periodo-meta">
+            <span>Do dia</span>
+            <input
+              aria-label="Dia inicial"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={31}
+              value={diaInicio}
+              onChange={(e) => setDiaInicio(e.target.value)}
+            />
+            <span>ao dia</span>
+            <input
+              aria-label="Dia final"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={31}
+              value={diaFim}
+              onChange={(e) => setDiaFim(e.target.value)}
+            />
+          </div>
+        ) : null}
+        <p className="hint">
+          {comPeriodo
+            ? 'Só as vendas faturadas nesses dias contam pra meta, em todo mês. Pra dividir o mês, cadastre uma meta pra cada parte (ex.: 1 a 19 e 20 a 31). O dia 31 vale até o fim do mês, mesmo nos meses mais curtos.'
+            : 'Todas as vendas do mês contam pra meta.'}
+        </p>
       </div>
 
       <div className="field">
