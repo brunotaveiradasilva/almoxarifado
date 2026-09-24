@@ -1,5 +1,6 @@
 import { rotuloMes, rotuloMesCurto } from './mes'
 import { formatarValorMeta } from './unidadeMeta'
+import { rotuloPeriodoMeta } from './periodoMeta'
 import type { MetaRepresentante, Meta } from '../types'
 import urlLogo from '../assets/logo-sulbiologic.png'
 
@@ -117,9 +118,16 @@ export async function exportarPdfMetasRepresentante({ representante, mes, grupos
       margin: { left: margem, right: margem },
       head: [['Meta', 'Meta', 'Realizado', 'Falta', 'Progresso']],
       body: grupo.linhas.map(({ meta, atribuicao, valorMeta, valorRealizado, falta, percentual }) => [
-        meta.unidade === 'KG' && atribuicao?.realizadoEmReais != null
-          ? `${meta.nome}\n${formatarValorMeta(atribuicao.realizadoEmReais, 'REAL')}`
-          : meta.nome,
+        [
+          meta.nome,
+          meta.unidade === 'KG' && atribuicao?.realizadoEmReais != null
+            ? formatarValorMeta(atribuicao.realizadoEmReais, 'REAL')
+            : null,
+          rotuloPeriodoMeta(meta),
+          meta.descricao,
+        ]
+          .filter(Boolean)
+          .join('\n'),
         percentual === null ? '-' : formatarValorMeta(valorMeta, meta.unidade),
         atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '-',
         percentual === null ? '-' : formatarValorMeta(falta, meta.unidade),

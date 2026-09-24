@@ -204,6 +204,10 @@ export interface MetaEntrada {
   cnpjAdsFornecedor: string
   produtosExcluidos: string
   produtosIncluidos: string
+  descricao: string
+  /** Os dois null = mês inteiro. */
+  diaInicio: number | null
+  diaFim: number | null
 }
 
 export function listarMetas(): Promise<Meta[]> {
