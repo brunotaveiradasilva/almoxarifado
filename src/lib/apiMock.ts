@@ -460,12 +460,12 @@ function sorteioFixo(texto: string): number {
 export function buscarVendasPeriodo(
   inicio: string,
   fim: string,
-  { representanteId, fornecedorId }: { representanteId?: string; fornecedorId?: string },
+  { representanteIds = [], fornecedorIds = [] }: { representanteIds?: string[]; fornecedorIds?: string[] },
 ): Promise<VendasPeriodo> {
   const vendedores = representantes
-    .filter((r) => r.codigoAds.trim() && (!representanteId || r.id === representanteId))
+    .filter((r) => r.codigoAds.trim() && (!representanteIds.length || representanteIds.includes(r.id)))
     .map((r) => ({ codigoAds: r.codigoAds, representanteId: r.id, nome: r.nome }))
-  const fracaoFornecedor = fornecedorId ? 0.35 + sorteioFixo(fornecedorId) * 0.3 : 1
+  const fracaoFornecedor = fornecedorIds.length ? Math.min(1, fornecedorIds.reduce((s, id) => s + 0.35 + sorteioFixo(id) * 0.3, 0)) : 1
   const linhas = vendedores.map((v) => {
     let valor = 0
     for (let dia = inicio; dia <= fim; dia = somarDias(1, new Date(`${dia}T12:00:00`))) {
