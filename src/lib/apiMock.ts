@@ -95,8 +95,8 @@ let fornecedores: Fornecedor[] = [
 ]
 
 let representantes: Representante[] = [
-  { id: novoId('rep'), nome: 'Marina Alves', fornecedores: [fornecedores[0]], email: 'marina@exemplo.com', celular: '(11) 99999-0001', codigoAds: '', totalVendidoAds: null },
-  { id: novoId('rep'), nome: 'Carlos Prado', fornecedores: [fornecedores[0], fornecedores[1]], email: 'carlos@exemplo.com', celular: '(11) 99999-0002', codigoAds: '', totalVendidoAds: null },
+  { id: novoId('rep'), nome: 'Marina Alves', fornecedores: [fornecedores[0]], email: 'marina@exemplo.com', celular: '(11) 99999-0001', codigoAds: '003', totalVendidoAds: null },
+  { id: novoId('rep'), nome: 'Carlos Prado', fornecedores: [fornecedores[0], fornecedores[1]], email: 'carlos@exemplo.com', celular: '(11) 99999-0002', codigoAds: '007', totalVendidoAds: null },
 ]
 
 let metas: Meta[] = [
@@ -455,13 +455,16 @@ function sorteioFixo(texto: string): number {
 
 /**
  * Sem ADS no mock: soma dia a dia um valor inventado (mas fixo) por representante, crescendo um
- * pouco a cada ano, pra dar pra ver as comparações. Inclui um representante fora do cadastro.
+ * pouco a cada ano, pra dar pra ver as comparações. Só representantes com código ADS, como a API.
  */
-export function buscarVendasPeriodo(inicio: string, fim: string, fornecedorId?: string): Promise<VendasPeriodo> {
-  const vendedores = [
-    ...representantes.map((r, i) => ({ codigoAds: r.codigoAds || String(i + 1), representanteId: r.id as string | null, nome: r.nome })),
-    { codigoAds: '99', representanteId: null, nome: 'VENDEDOR SÓ NA ADS' },
-  ]
+export function buscarVendasPeriodo(
+  inicio: string,
+  fim: string,
+  { representanteId, fornecedorId }: { representanteId?: string; fornecedorId?: string },
+): Promise<VendasPeriodo> {
+  const vendedores = representantes
+    .filter((r) => r.codigoAds.trim() && (!representanteId || r.id === representanteId))
+    .map((r) => ({ codigoAds: r.codigoAds, representanteId: r.id, nome: r.nome }))
   const fracaoFornecedor = fornecedorId ? 0.35 + sorteioFixo(fornecedorId) * 0.3 : 1
   const linhas = vendedores.map((v) => {
     let valor = 0

@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { EstadoVazio } from './EstadoVazio'
-import { useComparativoVendas } from '../hooks/useComparativoVendas'
+import { useComparativoVendas, type ConsultaVendas } from '../hooks/useComparativoVendas'
 import {
   METRICAS,
   TIPOS_COMPARACAO,
   UNIDADE_DA_METRICA,
+  erroDoPeriodo,
   mesesDoFiltro,
   periodosDaComparacao,
   rotuloPeriodo,
@@ -21,16 +22,28 @@ const TODOS = ''
 const ZERO: ValoresVenda = { valor: 0, kg: 0, clientes: 0 }
 
 interface Linha {
-  codigoAds: string
+  representanteId: string
   nome: string
   atual: ValoresVenda
   anterior: ValoresVenda
 }
 
+function mesmaConsulta(a: ConsultaVendas, b: ConsultaVendas): boolean {
+  return (
+    a.atual.inicio === b.atual.inicio &&
+    a.atual.fim === b.atual.fim &&
+    a.anterior.inicio === b.anterior.inicio &&
+    a.anterior.fim === b.anterior.fim &&
+    a.representanteId === b.representanteId &&
+    a.fornecedorId === b.fornecedorId
+  )
+}
+
 /**
- * Aba Dados: quanto cada representante vendeu num período comparado com outro — mês contra o mesmo
- * mês do ano passado, contra o mês anterior, acumulado do ano ou dois períodos livres. Os números
- * vêm direto da ADS (não do que foi sincronizado nas metas), então vale pra qualquer mês passado.
+ * Aba Dados: quanto cada representante do cadastro vendeu num período comparado com outro — mês
+ * contra o mesmo mês do ano passado, contra o mês anterior, acumulado do ano ou dois períodos
+ * livres. Os números vêm direto da ADS (não do que foi sincronizado nas metas), então vale pra
+ * qualquer mês passado. A ADS é lenta: só busca ao clicar em Buscar, nunca sozinha.
  */
 export function ConsultaComparativoVendas() {
   const [tipo, setTipo] = useState<TipoComparacao>('mesAnoAnterior')
@@ -39,7 +52,7 @@ export function ConsultaComparativoVendas() {
   // Preenchidos com os períodos da comparação que estava escolhida quando a pessoa passa pra "Períodos livres".
   const [livreAtual, setLivreAtual] = useState<Periodo>({ inicio: '', fim: '' })
   const [livreAnterior, setLivreAnterior] = useState<Periodo>({ inicio: '', fim: '' })
-  const [representante, setRepresentante] = useState(TODOS)
+  const [representanteId, setRepresentanteId] = useState(TODOS)
   const [fornecedorId, setFornecedorId] = useState(TODOS)
   const [metrica, setMetrica] = useState<Metrica>('valor')
 
@@ -50,47 +63,36 @@ export function ConsultaComparativoVendas() {
         : periodosDaComparacao(tipo, mes, mesmoDia),
     [tipo, mes, mesmoDia, livreAtual, livreAnterior],
   )
+  const consulta: ConsultaVendas = { ...periodos, representanteId, fornecedorId }
+  const erroPeriodo = erroDoPeriodo(periodos.atual) ?? erroDoPeriodo(periodos.anterior)
 
-  const comp = useComparativoVendas(periodos.atual, periodos.anterior, fornecedorId)
+  const comp = useComparativoVendas()
+  const resultado = comp.resultado
   const meses = useMemo(() => mesesDoFiltro(), [])
+  const filtrosMudaram = resultado !== null && !mesmaConsulta(resultado.consulta, consulta)
 
-  /** Cada representante que vendeu em algum dos dois períodos, casado pelo código ADS. */
+  /** Cada representante buscado, casado entre os dois períodos pelo id do cadastro. Sem venda em nenhum dos dois, some. */
   const linhas = useMemo<Linha[]>(() => {
-    if (!comp.dados) return []
-    const porCodigo = new Map<string, Linha>()
-    for (const r of comp.dados.anterior.representantes) {
-      porCodigo.set(r.codigoAds, { codigoAds: r.codigoAds, nome: r.nome, atual: ZERO, anterior: r.valores })
-    }
-    for (const r of comp.dados.atual.representantes) {
-      const existente = porCodigo.get(r.codigoAds)
-      porCodigo.set(r.codigoAds, { codigoAds: r.codigoAds, nome: r.nome, atual: r.valores, anterior: existente?.anterior ?? ZERO })
-    }
-    return [...porCodigo.values()]
-  }, [comp.dados])
-
-  const opcoesRepresentante = useMemo(
-    () => [...linhas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
-    [linhas],
-  )
-
-  const visiveis = useMemo(() => {
-    const filtradas = representante === TODOS ? linhas : linhas.filter((l) => l.codigoAds === representante)
-    return [...filtradas].sort(
-      (a, b) => b.atual[metrica] - a.atual[metrica] || b.anterior[metrica] - a.anterior[metrica] || a.nome.localeCompare(b.nome, 'pt-BR'),
-    )
-  }, [linhas, representante, metrica])
+    if (!resultado) return []
+    const anterior = new Map(resultado.anterior.representantes.map((r) => [r.representanteId, r.valores]))
+    return resultado.atual.representantes
+      .map((r) => ({ representanteId: r.representanteId, nome: r.nome, atual: r.valores, anterior: anterior.get(r.representanteId) ?? ZERO }))
+      .filter((l) => l.atual.valor || l.anterior.valor || l.atual.kg || l.anterior.kg)
+      .sort(
+        (a, b) =>
+          b.atual[metrica] - a.atual[metrica] || b.anterior[metrica] - a.anterior[metrica] || a.nome.localeCompare(b.nome, 'pt-BR'),
+      )
+  }, [resultado, metrica])
 
   // Clientes do total vêm prontos da API: somar os de cada representante contaria duas vezes quem compra de dois.
-  const resumo =
-    representante === TODOS
-      ? { atual: comp.dados?.atual.total ?? ZERO, anterior: comp.dados?.anterior.total ?? ZERO }
-      : { atual: visiveis[0]?.atual ?? ZERO, anterior: visiveis[0]?.anterior ?? ZERO }
+  const resumo = { atual: resultado?.atual.total ?? ZERO, anterior: resultado?.anterior.total ?? ZERO }
 
   const unidade = UNIDADE_DA_METRICA[metrica]
-  const rotuloAtual = rotuloPeriodo(periodos.atual)
-  const rotuloAnterior = rotuloPeriodo(periodos.anterior)
+  // Rótulos do que foi buscado, não do que está nos filtros agora (podem ter mudado sem buscar de novo).
+  const rotuloAtual = resultado ? rotuloPeriodo(resultado.consulta.atual) : ''
+  const rotuloAnterior = resultado ? rotuloPeriodo(resultado.consulta.anterior) : ''
+  const buscouUmSo = resultado !== null && resultado.consulta.representanteId !== TODOS
   const mesEmAndamento = tipo !== 'personalizado' && mes === mesAtual()
-  const nomeRepresentante = linhas.find((l) => l.codigoAds === representante)?.nome
 
   function mudarTipo(novo: TipoComparacao) {
     if (novo === 'personalizado' && tipo !== 'personalizado') {
@@ -100,99 +102,118 @@ export function ConsultaComparativoVendas() {
     setTipo(novo)
   }
 
+  function buscar(e: FormEvent) {
+    e.preventDefault()
+    if (erroPeriodo || comp.carregando) return
+    comp.buscar(consulta)
+  }
+
   return (
     <div className={comp.carregando ? 'comparativo is-carregando' : 'comparativo'}>
       {comp.erro ? (
         <div className="banner-erro" role="alert">
           <span>{comp.erro}</span>
-          <button className="btn" onClick={comp.tentarNovamente}>
-            Tentar de novo
-          </button>
         </div>
       ) : null}
 
-      <div className="consulta-filtros">
-        <div className="field consulta-filtro">
-          <label htmlFor="dados-tipo">Comparação</label>
-          <select id="dados-tipo" value={tipo} onChange={(e) => mudarTipo(e.target.value as TipoComparacao)}>
-            {TIPOS_COMPARACAO.map((t) => (
-              <option key={t.valor} value={t.valor}>
-                {t.rotulo}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {tipo !== 'personalizado' ? (
-          <div className="field consulta-filtro consulta-filtro-mes">
-            <label htmlFor="dados-mes">{tipo === 'acumuladoAno' ? 'Até o mês' : 'Mês'}</label>
-            <select id="dados-mes" value={mes} onChange={(e) => setMes(e.target.value)}>
-              {meses.map((m) => (
-                <option key={m} value={m}>
-                  {rotuloMesCurto(m)}
-                  {m === mesAtual() ? ' (atual)' : ''}
+      <form onSubmit={buscar}>
+        <div className="consulta-filtros">
+          <div className="field consulta-filtro">
+            <label htmlFor="dados-tipo">Comparação</label>
+            <select id="dados-tipo" value={tipo} onChange={(e) => mudarTipo(e.target.value as TipoComparacao)}>
+              {TIPOS_COMPARACAO.map((t) => (
+                <option key={t.valor} value={t.valor}>
+                  {t.rotulo}
                 </option>
               ))}
             </select>
           </div>
-        ) : (
-          <>
-            <IntervaloDatas id="dados-atual" rotulo="Período" periodo={livreAtual} aoMudar={setLivreAtual} />
-            <IntervaloDatas id="dados-anterior" rotulo="Comparar com" periodo={livreAnterior} aoMudar={setLivreAnterior} />
-          </>
-        )}
 
-        {mesEmAndamento ? (
-          <label className="comparativo-check">
-            <input type="checkbox" checked={mesmoDia} onChange={(e) => setMesmoDia(e.target.checked)} />
-            Comparar até o mesmo dia
-          </label>
-        ) : null}
-      </div>
+          {tipo !== 'personalizado' ? (
+            <div className="field consulta-filtro consulta-filtro-mes">
+              <label htmlFor="dados-mes">{tipo === 'acumuladoAno' ? 'Até o mês' : 'Mês'}</label>
+              <select id="dados-mes" value={mes} onChange={(e) => setMes(e.target.value)}>
+                {meses.map((m) => (
+                  <option key={m} value={m}>
+                    {rotuloMesCurto(m)}
+                    {m === mesAtual() ? ' (atual)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <>
+              <IntervaloDatas id="dados-atual" rotulo="Período" periodo={livreAtual} aoMudar={setLivreAtual} />
+              <IntervaloDatas id="dados-anterior" rotulo="Comparar com" periodo={livreAnterior} aoMudar={setLivreAnterior} />
+            </>
+          )}
 
-      <div className="consulta-filtros">
-        <div className="field consulta-filtro">
-          <label htmlFor="dados-representante">Representante</label>
-          <select id="dados-representante" value={representante} onChange={(e) => setRepresentante(e.target.value)}>
-            <option value={TODOS}>Todos os representantes</option>
-            {opcoesRepresentante.map((l) => (
-              <option key={l.codigoAds} value={l.codigoAds}>
-                {l.nome}
-              </option>
-            ))}
-          </select>
+          {mesEmAndamento ? (
+            <label className="comparativo-check">
+              <input type="checkbox" checked={mesmoDia} onChange={(e) => setMesmoDia(e.target.checked)} />
+              Comparar até o mesmo dia
+            </label>
+          ) : null}
         </div>
-        <div className="field consulta-filtro">
-          <label htmlFor="dados-fornecedor">Fornecedor</label>
-          <select id="dados-fornecedor" value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)}>
-            <option value={TODOS}>Todos os fornecedores</option>
-            {comp.fornecedores.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.nome}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field comparativo-metrica">
-          <span className="comparativo-metrica-rotulo" id="dados-metrica">
-            Métrica
-          </span>
-          <div className="filters" role="group" aria-labelledby="dados-metrica">
-            {METRICAS.map((m) => (
-              <button key={m.valor} aria-pressed={metrica === m.valor} onClick={() => setMetrica(m.valor)}>
-                {m.rotulo}
-              </button>
-            ))}
+
+        <div className="consulta-filtros">
+          <div className="field consulta-filtro">
+            <label htmlFor="dados-representante">Representante</label>
+            <select id="dados-representante" value={representanteId} onChange={(e) => setRepresentanteId(e.target.value)}>
+              <option value={TODOS}>Todos os representantes</option>
+              {comp.representantes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field consulta-filtro">
+            <label htmlFor="dados-fornecedor">Fornecedor</label>
+            <select id="dados-fornecedor" value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)}>
+              <option value={TODOS}>Todos os fornecedores</option>
+              {comp.fornecedores.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="consulta-acoes">
+            <button type="submit" className="btn btn-primary" disabled={!!erroPeriodo || comp.carregando}>
+              {comp.carregando ? 'Buscando…' : 'Buscar'}
+            </button>
           </div>
         </div>
-      </div>
+      </form>
 
-      {comp.erroPeriodo ? (
-        <p className="hint warn comparativo-aviso">{comp.erroPeriodo}</p>
-      ) : !comp.dados ? (
-        <EstadoVazio titulo="Buscando na ADS…" texto="Somando as vendas dos dois períodos. Um ano inteiro pode levar alguns segundos." />
+      {erroPeriodo ? (
+        <p className="hint warn comparativo-aviso">{erroPeriodo}</p>
+      ) : filtrosMudaram && !comp.carregando ? (
+        <p className="hint comparativo-aviso">Os filtros mudaram — clique em Buscar pra atualizar os números.</p>
+      ) : null}
+
+      {!resultado ? (
+        comp.carregando ? (
+          <EstadoVazio titulo="Buscando na ADS…" texto="Somando as vendas dos dois períodos. Um ano inteiro pode levar alguns segundos." />
+        ) : (
+          <EstadoVazio
+            titulo="Escolha os filtros e clique em Buscar"
+            texto="As vendas vêm direto da ADS, dos representantes cadastrados com código ADS. Escolher um representante só deixa a busca bem mais rápida."
+          />
+        )
       ) : (
         <>
+          <div className="comparativo-metrica" role="group" aria-label="Métrica">
+            <div className="filters">
+              {METRICAS.map((m) => (
+                <button key={m.valor} type="button" aria-pressed={metrica === m.valor} onClick={() => setMetrica(m.valor)}>
+                  {m.rotulo}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="stats meta-kpis meta-kpis-largo">
             <div className="stat">
               <span className="label">{rotuloAtual}</span>
@@ -213,10 +234,10 @@ export function ConsultaComparativoVendas() {
 
           <div className="meta-card">
             <div className="meta-card-head">
-              <h3>{nomeRepresentante ?? 'Por representante'}</h3>
+              <h3>{buscouUmSo ? (resultado.atual.representantes[0]?.nome ?? 'Representante') : 'Por representante'}</h3>
               <span className="meta-badge">{comp.carregando ? 'Atualizando…' : `${rotuloAtual} × ${rotuloAnterior}`}</span>
             </div>
-            {visiveis.length ? (
+            {linhas.length ? (
               <div className="table-scroll">
                 <div className="table-wrap">
                   <table className="tabela-comparativo">
@@ -230,8 +251,8 @@ export function ConsultaComparativoVendas() {
                       </tr>
                     </thead>
                     <tbody>
-                      {visiveis.map((l) => (
-                        <tr key={l.codigoAds}>
+                      {linhas.map((l) => (
+                        <tr key={l.representanteId}>
                           <td className="cell-material">{l.nome}</td>
                           <td className="num">{formatarValorMeta(l.anterior[metrica], unidade)}</td>
                           <td className="num">{formatarValorMeta(l.atual[metrica], unidade)}</td>
@@ -242,7 +263,7 @@ export function ConsultaComparativoVendas() {
                         </tr>
                       ))}
                     </tbody>
-                    {representante === TODOS && visiveis.length > 1 ? (
+                    {linhas.length > 1 ? (
                       <tfoot>
                         <tr>
                           <td>Total</td>
@@ -262,7 +283,7 @@ export function ConsultaComparativoVendas() {
               <EstadoVazio titulo="Nenhuma venda" texto="Nada vendido nesses dois períodos com esses filtros." />
             )}
           </div>
-          {metrica === 'clientes' && representante === TODOS ? (
+          {metrica === 'clientes' && linhas.length > 1 ? (
             <p className="hint comparativo-aviso">
               No total, cada cliente conta uma vez só — por isso ele pode ser menor que a soma dos representantes.
             </p>

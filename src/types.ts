@@ -152,11 +152,11 @@ export interface VendasPeriodo {
   inicio: string
   /** AAAA-MM-DD */
   fim: string
+  /** Um por representante do cadastro com código ADS (ou só o escolhido), mesmo sem venda. */
   representantes: {
-    /** Id do representante na ADS — é por ele que os dois períodos se casam. */
     codigoAds: string
-    /** Null se esse código ADS não está no cadastro de representantes. */
-    representanteId: string | null
+    /** Id no cadastro — é por ele que os dois períodos se casam. */
+    representanteId: string
     nome: string
     valores: ValoresVenda
   }[]
