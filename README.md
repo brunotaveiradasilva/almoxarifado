@@ -42,8 +42,8 @@ Quem empresta equipamento — almoxarifado, escola, locadora, equipe de campo �
 Requer Node.js 20 ou superior, e a [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api) rodando (`docker compose up` nela é o caminho mais rápido).
 
 ```bash
-git clone https://github.com/brunotaveiradasilva/almoxarifado.git
-cd almoxarifado
+git clone https://github.com/brunotaveiradasilva/sulbiologic-hub.git
+cd sulbiologic-hub
 npm install
 cp .env.example .env   # VITE_API_URL — por padrão já aponta pro localhost:8080
 npm run dev
