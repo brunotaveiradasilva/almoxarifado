@@ -21,7 +21,7 @@ export function TelaLogin({ entrando, erro, aoEntrar }: Props) {
     <div className="login-page">
       <form className="login-card" onSubmit={enviar}>
         <div className="login-brand">
-          <h1>SulHub</h1>
+          <h1>SulBiologic Hub</h1>
           <span className="sub">entre para continuar</span>
         </div>
 
